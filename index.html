@@ -210,16 +210,20 @@ a{color:#000}
 <body>
 <div class="wrap">
 <header>
- <div><h1>Gia phả</h1><p id="count"></p><p id="updm"></p><p id="today"></p></div>
- <div class="actions"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button><button id="ld" class="vw">Nạp dữ liệu mới</button><button id="prt">In</button><button id="bak" class="pa">Sao lưu và nhập dữ liệu</button><button id="du" class="pa">Tự cập nhật app con</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
+ <div><h1>Gia phả</h1><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
+ <div class="actions"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="auth-login" class="vw">Đăng nhập quản trị</button><button id="auth-logout" class="pa">Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button><button id="ld" class="vw">Nạp dữ liệu mới</button><button id="prt">In</button><button id="bak" class="pa">Sao lưu và nhập dữ liệu</button><button id="du" class="pa">Tự cập nhật app con</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
 </header>
 <input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
 <div class="tabs"><button data-v="tree" aria-pressed="false">Cây gia phả</button><button data-v="list" aria-pressed="false">Danh sách</button><button data-v="gio" aria-pressed="false">Ngày giỗ</button><button data-v="bm" aria-pressed="false">Ngày bổn mạng</button><button data-v="st" aria-pressed="false" class="pa" id="tst">Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">Thông báo</button></div>
 <p class="ph" id="ph"></p><div id="bn"></div><main id="main"></main><div id="toast" role="status" hidden=""></div>
 </div>
 <dialog id="dv"></dialog><dialog id="df"></dialog><dialog id="db"></dialog><dialog id="dz"></dialog><dialog id="dn"></dialog><dialog id="ds"></dialog><dialog id="dup"></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="seed" type="application/json">{"t":0,"people":[],"upd":"https://script.google.com/macros/s/AKfycbzlkuuHlzFe7Zuq4-E5CFqjktqrmpaydT8cVZCdQPHyO4I-JQ_mYOVjejFQeudy_K-I/exec"}</script>
-<script>(async()=>{let OWN=false,DB=null;try{const c=window.claude;if(c){const u=await c.use('user');OWN=!!(u&&await u.isOwner());DB=await c.use('db')}else OWN=document.documentElement.dataset.mode!=='view'}catch(e){}
+<script>(async()=>{
+const SUPABASE_URL='https://jythsoipunwojlkqemdp.supabase.co',SUPABASE_KEY='sb_publishable_aHk_WQ8BFsFv5dSr6pmIwA_zyHe4_9X',ADMIN_UID='b23f13f5-8be9-4cc8-8ae1-7153308c2574',PHOTO_BUCKET='gia-pha-photos';
+let OWN=false,DB=null,SB=null,SBUSER=null;
+try{if(window.supabase?.createClient){SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const {data,error}=await SB.auth.getSession();if(!error&&data.session)SBUSER=data.session.user}const c=window.claude;if(c){const u=await c.use('user');OWN=!!(u&&await u.isOwner());DB=await c.use('db')}else if(document.documentElement.dataset.mode!=='view'){OWN=!!(SBUSER&&SBUSER.id===ADMIN_UID)}}catch(e){console.warn('Khởi tạo Supabase:',e)}
 const dat=s=>s&&(typeof s.data==='function'?s.data():s.data);
 document.documentElement.dataset.mode=OWN?'':'view';
 const BL=new Map,DLP=window.claude?window.claude.use('downloads'):null;
@@ -344,6 +348,9 @@ function resize(file,cb){const r=new FileReader();r.onload=()=>{const im=new Ima
 $('#prt').onclick=()=>{try{window.print()}catch(e){}};
 $('#dz').onclick=()=>$('#dz').close();
 const toast=m=>{const e=$('#toast');e.textContent=m;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{e.hidden=true},7000)};
+if(OWN&&SBUSER)$('#auth-status').textContent='Đã đăng nhập quản trị';else if(SBUSER)$('#auth-status').textContent='Đang đăng nhập tài khoản không có quyền quản trị';else $('#auth-status').textContent='Chế độ xem công khai';
+$('#auth-login').onclick=async()=>{if(location.protocol==='file:'){toast('Cần đưa website lên một địa chỉ HTTPS trước khi đăng nhập Google. Ta sẽ cấu hình địa chỉ này ở bước triển khai website.');return}if(!SB){toast('Không tải được thư viện kết nối Supabase. Hãy kiểm tra kết nối Internet rồi tải lại trang.');return}const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href}});if(error)toast('Không đăng nhập được: '+error.message)};
+$('#auth-logout').onclick=async()=>{if(SB){const {error}=await SB.auth.signOut();if(error){toast('Không đăng xuất được: '+error.message);return}}location.reload()};
 function buildHtml(t,v){const c=document.documentElement.cloneNode(true);
  ['#main','#bn','#dv','#df','#db','#dz','#dn','#ds','#dup'].forEach(s=>{const e=c.querySelector(s);e.innerHTML='';e.removeAttribute('open');e.removeAttribute('data-id')});
  ['#count','#updm','#today','#ph','#toast'].forEach(s=>{c.querySelector(s).textContent=''});c.querySelector('#toast').setAttribute('hidden','');
@@ -426,7 +433,8 @@ function isRoot(p){if(p.fatherId||p.motherId)return false;const s=by(p.spouseId)
 const ini=n=>{const w=String(n||'?').trim().split(/\s+/);return esc((w[w.length-1]||'?').charAt(0).toUpperCase())};
 const rom=n=>{let r='';for(const[v,k]of[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']])while(n>=v){r+=k;n-=v}return r};
 const dl=p=>{const b=pd(p.birth);return p.death?yrs(p):b?fmt(b):''};
-const ava=p=>p.photo?`<img class="av" src="${p.photo}" alt="">`:`<span class="lt">${ini(p.name)}</span>`;
+const photoSrc=p=>p&&(p.photoUrl||p.photo)||'';
+const ava=p=>photoSrc(p)?`<img class="av" src="${photoSrc(p)}" alt="">`:`<span class="lt">${ini(p.name)}</span>`;
 const card=p=>`<button class="person ${p.gender==='nu'?'nu':'nam'}${fp===p.id?' fo':''}" data-id="${p.id}" title="${esc(dn(p))}">${ava(p)}<span class="nm${dn(p).length>34?' sm':''}">${esc(dn(p))}</span><span class="dt">${esc(dl(p))}</span></button>`;
 function direct(id){const A=new Set(),D=new Set(),p0=by(id);if(!p0)return A;
  const up=(x,d)=>{if(!x||A.has(x.id)||d>30)return;A.add(x.id);up(by(x.fatherId),d+1);up(by(x.motherId),d+1)};up(p0,0);
@@ -438,7 +446,7 @@ function centerTree(t,el){if(!t||!el)return;const r=el.getBoundingClientRect(),b
 let maxD=0;
 function node(p,seen,d,A){maxD=Math.max(maxD,d);seen.add(p.id);const s=by(p.spouseId);if(s)seen.add(s.id);const ks=kids(p).filter(c=>!seen.has(c.id)&&(!A||A.has(c.id)));
  const m=s&&d>0;return `<li${m?' class="m"':''}><div class="node">${card(p)}${s?card(s):''}</div>${ks.length?`<ul>${ks.map(c=>node(c,seen,d+1,A)).join('')}</ul>`:''}</li>`}
-const cardV=(p,g)=>`<button class="person ${p.gender==='nu'?'nu':'nam'}${fp===p.id?' fo':''}" data-id="${p.id}" title="${esc(dn(p))}">${p.photo?`<img class="av" src="${p.photo}" alt="">`:''}<span class="t"><b>${esc(dn(p))}</b><span>${esc([yrs(p),ageS(p)].filter(Boolean).join(', '))}</span>${g?`<em>Đời ${gen(p)}</em>`:''}</span></button>`;
+const cardV=(p,g)=>`<button class="person ${p.gender==='nu'?'nu':'nam'}${fp===p.id?' fo':''}" data-id="${p.id}" title="${esc(dn(p))}">${photoSrc(p)?`<img class="av" src="${photoSrc(p)}" alt="">`:""}<span class="t"><b>${esc(dn(p))}</b><span>${esc([yrs(p),ageS(p)].filter(Boolean).join(', '))}</span>${g?`<em>Đời ${gen(p)}</em>`:''}</span></button>`;
 function nodeV(p,seen,d,A){seen.add(p.id);const s=by(p.spouseId);if(s)seen.add(s.id);const ks=kids(p).filter(c=>!seen.has(c.id)&&(!A||A.has(c.id)));
  return `<li class="vi"><div class="vn">${cardV(p,1)}${s?`<span class="ring" title="Vợ/chồng"></span>${cardV(s,0)}`:''}</div>${ks.length?`<ul class="vl">${ks.map(c=>nodeV(c,seen,d+1,A)).join('')}</ul>`:''}</li>`}
 function render(force){
@@ -587,7 +595,7 @@ function openView(id){const p=by(id);if(!p)return;const f=by(p.fatherId),mo=by(p
  const row=(k,v)=>v?`<dt>${k}</dt><dd>${v}</dd>`:'';
  const lk=x=>x?`<a href="#" data-go="${x.id}">${esc(dn(x))}</a>`:'';
  d.dataset.id=id;
- d.innerHTML=`${p.photo?`<img class="big" src="${p.photo}" alt="Ảnh của ${esc(dn(p))}">`:''}<h2>${esc(dn(p))}</h2><p class="sub">${p.gender==='nam'?'Nam':'Nữ'}, đời ${gen(p)}${ageS(p)?', '+ageS(p):''}</p><dl>${row('Ngày sinh',birthTxt(p))}${row('Ngày mất',deathTxt(p))}${row('Ngày giỗ',p.death||p.gio?gioTxt(p):'')}${row('Tôn giáo',esc(relOf(p)))}${isCath(p)?row('Tên Thánh',esc(p.saint))+row('Ngày bổn mạng',bmTxt(p)):''}${row('Nơi sinh',esc(p.place))}${row('Quê quán',esc(p.home))}${row('Nghề nghiệp',esc(p.job))}${row('Cha',lk(f))}${row('Mẹ',lk(mo))}${row('Vợ/chồng',lk(s))}${row('Con',ks.map(lk).join(', '))}${row('Ghi chú',esc(p.note))}</dl><label class="dir"><input type="checkbox" id="dv-dir" ${fp===id?'checked':''}><span>Chỉ hiển thị trực hệ trên tab Cây gia phả (ông bà cố, ông bà, cha mẹ, vợ/chồng, anh chị em ruột, con, cháu, chắt)</span></label><div class="bar"><button data-a="loc" class="pri">Xem vị trí trên cây gia phả</button>${VIEW?'':`<button data-a="child">Thêm con</button>${s?'':'<button data-a="spouse">Thêm vợ/chồng</button>'}<button data-a="edit">Sửa</button><button data-a="del" class="danger">Xóa</button>`}<button data-a="x">Đóng</button></div>`;
+ d.innerHTML=`${photoSrc(p)?`<img class="big" src="${photoSrc(p)}" alt="Ảnh của ${esc(dn(p))}">`:""}<h2>${esc(dn(p))}</h2><p class="sub">${p.gender==='nam'?'Nam':'Nữ'}, đời ${gen(p)}${ageS(p)?', '+ageS(p):''}</p><dl>${row('Ngày sinh',birthTxt(p))}${row('Ngày mất',deathTxt(p))}${row('Ngày giỗ',p.death||p.gio?gioTxt(p):'')}${row('Tôn giáo',esc(relOf(p)))}${isCath(p)?row('Tên Thánh',esc(p.saint))+row('Ngày bổn mạng',bmTxt(p)):''}${row('Nơi sinh',esc(p.place))}${row('Quê quán',esc(p.home))}${row('Nghề nghiệp',esc(p.job))}${row('Cha',lk(f))}${row('Mẹ',lk(mo))}${row('Vợ/chồng',lk(s))}${row('Con',ks.map(lk).join(', '))}${row('Ghi chú',esc(p.note))}</dl><label class="dir"><input type="checkbox" id="dv-dir" ${fp===id?'checked':''}><span>Chỉ hiển thị trực hệ trên tab Cây gia phả (ông bà cố, ông bà, cha mẹ, vợ/chồng, anh chị em ruột, con, cháu, chắt)</span></label><div class="bar"><button data-a="loc" class="pri">Xem vị trí trên cây gia phả</button>${VIEW?'':`<button data-a="child">Thêm con</button>${s?'':'<button data-a="spouse">Thêm vợ/chồng</button>'}<button data-a="edit">Sửa</button><button data-a="del" class="danger">Xóa</button>`}<button data-a="x">Đóng</button></div>`;
  if(!d.open)d.showModal();
 }
 $('#dv').onclick=e=>{if(e.target.classList.contains('big')){const z=$('#dz');z.innerHTML='<img src="'+e.target.src+'" alt="">';z.showModal();return}const d=$('#dv'),g=e.target.closest('[data-go]');if(g){e.preventDefault();openView(g.dataset.go);return}
@@ -601,7 +609,14 @@ $('#dv').onclick=e=>{if(e.target.classList.contains('big')){const z=$('#dz');z.i
   people=people.filter(x=>x.id!==id);people.forEach(x=>['fatherId','motherId','spouseId'].forEach(f=>{if(x[f]===id)delete x[f]}));save();d.close();render()}
 };
 $('#dv').onchange=e=>{if(e.target.id!=='dv-dir')return;const d=$('#dv'),id=d.dataset.id;fp=e.target.checked?id:null;view='tree';$('#q').value='';q='';d.close();render(1)};
-function openForm(pre={},id=null){const p=id?by(id):pre,d=$('#df'),v=k=>esc(p[k]);let photo=p.photo||'';
+async function uploadMemberPhoto(dataUrl,personId){
+ if(!SB||!SBUSER||SBUSER.id!==ADMIN_UID)throw new Error('Bạn cần đăng nhập đúng tài khoản quản trị trước khi tải ảnh lên.');
+ const blob=await (await fetch(dataUrl)).blob(),path=`members/${personId}/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`;
+ const {error}=await SB.storage.from(PHOTO_BUCKET).upload(path,blob,{contentType:'image/jpeg',upsert:false});
+ if(error)throw error;const {data}=SB.storage.from(PHOTO_BUCKET).getPublicUrl(path);return{url:data.publicUrl,path};
+}
+async function removeMemberPhoto(path){if(!SB||!SBUSER||SBUSER.id!==ADMIN_UID||!path)return;const {error}=await SB.storage.from(PHOTO_BUCKET).remove([path]);if(error)console.warn('Không xóa được ảnh cũ:',error.message)}
+function openForm(pre={},id=null){const p=id?by(id):pre,d=$('#df'),v=k=>esc(p[k]);let photo=photoSrc(p);
  const rel0=p.rel||'Công Giáo',known=REL.includes(rel0),cath0=isCath({rel:rel0});
  const opts=(sel)=>'<option value="">Không rõ</option>'+people.filter(x=>x.id!==id).map(x=>`<option value="${x.id}" ${x.id===sel?'selected':''}>${esc(dn(x))}${x.birth?' ('+esc(x.birth)+')':''}</option>`).join('');
  d.innerHTML=`<h2>${id?'Sửa thông tin':'Thêm người'}</h2><div class="grid">
@@ -649,19 +664,25 @@ function openForm(pre={},id=null){const p=id?by(id):pre,d=$('#df'),v=k=>esc(p[k]
  d.onpointerdown=e=>{if(!e.target.closest('#f-saint-w'))closeSug()};
  d.oncancel=e=>{const s=$('#f-sug');if((s&&!s.hidden)||Date.now()-escT<200){e.preventDefault();closeSug()}};
  dmask($('#f-birth'),3);dmask($('#f-death'),3);dmask($('#f-gio'),2);dmask($('#f-sday'),2);
- $('#f-file').onchange=e=>{const f=e.target.files[0];if(f)resize(f,u=>{if(u){photo=u;$('#f-img').src=u;$('#f-img').hidden=false;$('#f-err').textContent=''}else $('#f-err').textContent='Không đọc được ảnh này. Thử ảnh JPG hoặc PNG.'})};
+ $('#f-file').onchange=e=>{const f=e.target.files[0];if(f){if(f.size>12*1024*1024){$('#f-err').textContent='Ảnh gốc quá lớn (trên 12 MB). Hãy chọn ảnh nhỏ hơn.';e.target.value='';return}resize(f,u=>{if(u){photo=u;$('#f-img').src=u;$('#f-img').hidden=false;$('#f-err').textContent=''}else $('#f-err').textContent='Không đọc được ảnh này. Thử ảnh JPG hoặc PNG.'})}};
  $('#f-rm').onclick=()=>{photo='';$('#f-img').hidden=true;$('#f-img').removeAttribute('src');$('#f-file').value=''};
- $('#f-save').onclick=()=>{const g=k=>$('#f-'+k).value.trim();
+ $('#f-save').onclick=async()=>{const btn=$('#f-save'),g=k=>$('#f-'+k).value.trim();
   ['birth','death','gio','sday'].forEach(k=>{const e=$('#f-'+k);if(e&&e._fin)e._fin()});
   if(!g('name')){$('#f-err').textContent='Nhập họ và tên để lưu.';$('#f-name').focus();return}
   for(const k of['birth','death'])if(g(k)&&!vd(g(k))){$('#f-err').textContent='Nhập ngày theo dạng DD/MM/YYYY (ví dụ 23/09/1993) hoặc chỉ năm (ví dụ 1950).';$('#f-'+k).focus();return}
   if(!relV()){$('#f-err').textContent='Nhập tên tôn giáo.';$('#f-relx').focus();return}
   if(catV()&&g('sday')&&!sdp(g('sday'))){$('#f-err').textContent='Nhập ngày lễ bổn mạng dạng DD/MM, ví dụ 19/03.';$('#f-sday').focus();return}
   if(g('gio')&&!sdp(g('gio'),1)){$('#f-err').textContent='Nhập ngày giỗ âm lịch dạng DD/MM, ví dụ 15/07.';$('#f-gio').focus();return}
-  const o={id:id||'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)};
-  ['name','gender','job','birth','death','gio','place','home','note','fatherId','motherId','spouseId'].forEach(k=>{if(g(k))o[k]=g(k)});if(photo)o.photo=photo;
+  const oldPerson=id?by(id):null,o={id:id||'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)};
+  ['name','gender','job','birth','death','gio','place','home','note','fatherId','motherId','spouseId'].forEach(k=>{if(g(k))o[k]=g(k)});
   o.rel=relV();if(catV()){if(g('saint'))o.saint=g('saint');if(g('sday'))o.saintDay=g('sday')}
-  const old=id?by(id).spouseId:null;
+  btn.disabled=true;btn.textContent='Đang lưu…';
+  try{
+   if(photo&&photo.startsWith('data:image/')){const up=await uploadMemberPhoto(photo,o.id);o.photoUrl=up.url;o.photoPath=up.path}
+   else if(photo){if(oldPerson&&oldPerson.photoPath)o.photoPath=oldPerson.photoPath;if(/^https?:\/\//i.test(photo))o.photoUrl=photo;else o.photo=photo}
+   if(oldPerson&&oldPerson.photoPath&&oldPerson.photoPath!==o.photoPath)await removeMemberPhoto(oldPerson.photoPath);
+  }catch(err){btn.disabled=false;btn.textContent='Lưu';$('#f-err').textContent='Chưa lưu được ảnh lên kho: '+(err.message||err);return}
+  const old=oldPerson?oldPerson.spouseId:null;
   if(id)people=people.map(x=>x.id===id?o:x);else people.push(o);
   if(old&&old!==o.spouseId){const x=by(old);if(x&&x.spouseId===o.id)delete x.spouseId}
   if(o.spouseId){const x=by(o.spouseId);if(x){if(x.spouseId&&x.spouseId!==o.id){const y=by(x.spouseId);if(y&&y.spouseId===x.id)delete y.spouseId}x.spouseId=o.id}}
