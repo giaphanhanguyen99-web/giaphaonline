@@ -221,7 +221,7 @@ a{color:#000}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="seed" type="application/json">{"t":0,"people":[],"upd":"https://script.google.com/macros/s/AKfycbzlkuuHlzFe7Zuq4-E5CFqjktqrmpaydT8cVZCdQPHyO4I-JQ_mYOVjejFQeudy_K-I/exec"}</script>
 <script>(async()=>{
-const SUPABASE_URL='https://jythsoipunwojlkqemdp.supabase.co',SUPABASE_KEY='sb_publishable_aHk_WQ8BFsFv5dSr6pmIwA_zyHe4_9X',ADMIN_UID='b23f13f5-8be9-4cc8-8ae1-7153308c2574',PHOTO_BUCKET='gia-pha-photos';
+const SUPABASE_URL='https://jythsoipunwojlkqemdp.supabase.co',SUPABASE_KEY='sb_publishable_aHk_WQ8BFsFv5dSr6pmIwA_zyHe4_9X',ADMIN_UID='4f442010-a8ae-4339-9748-554ce5c281e7',PHOTO_BUCKET='gia-pha-photos';
 let OWN=false,DB=null,SB=null,SBUSER=null;
 try{if(window.supabase?.createClient){SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);const {data,error}=await SB.auth.getSession();if(!error&&data.session)SBUSER=data.session.user}const c=window.claude;if(c){const u=await c.use('user');OWN=!!(u&&await u.isOwner());DB=await c.use('db')}else if(document.documentElement.dataset.mode!=='view'){OWN=!!(SBUSER&&SBUSER.id===ADMIN_UID)}}catch(e){console.warn('Khởi tạo Supabase:',e)}
 const dat=s=>s&&(typeof s.data==='function'?s.data():s.data);
@@ -244,7 +244,41 @@ let dirty=false;const vSt=a=>Array.isArray(a)?a.filter(x=>Array.isArray(x)&&x[0]
  upd=lu!==null?lu:((sd&&sd.upd)||'');if(!/^https:\/\//i.test(upd))upd='';
  try{if(localStorage.getItem(KEY+'-tm')==='compact')tmode='compact'}catch(e){}
 })();
-let bad=false;const save=()=>{dirty=true;try{localStorage.setItem(KEY,JSON.stringify(people));localStorage.setItem(KEY+'-notice',JSON.stringify(notice));localStorage.setItem(KEY+'-saints',JSON.stringify(saints));localStorage.setItem(KEY+'-t',Date.now());bad=false}catch(e){bad=true}};
+let bad=false,cloudSaving=false,cloudSaveTimer=0;
+async function loadSupabaseMembers(){
+ if(!SB)throw new Error('Không khởi tạo được kết nối Supabase.');
+ const {data,error}=await SB.from('family_members').select('id,data').order('created_at',{ascending:true});
+ if(error)throw error;
+ const rows=(data||[]).map(r=>{const p=r.data&&typeof r.data==='object'?r.data:{};return {...p,id:p.id||r.id}}).filter(p=>p.id&&p.name);
+ const {data:settings,error:settingsError}=await SB.from('family_settings').select('data').eq('id','main').maybeSingle();
+ if(settingsError)throw settingsError;
+ people=rows;
+ if(settings&&settings.data&&typeof settings.data==='object'){
+  const x=settings.data;
+  notice=x.notice&&typeof x.notice==='object'?x.notice:null;
+  saints=vSt(x.saints);
+  if(typeof x.upd==='string'&&/^https:\/\//i.test(x.upd))upd=x.upd;
+ }
+ dataT=Date.now();dirty=false;
+ try{localStorage.setItem(KEY,JSON.stringify(people));localStorage.setItem(KEY+'-notice',JSON.stringify(notice));localStorage.setItem(KEY+'-saints',JSON.stringify(saints));localStorage.setItem(KEY+'-t',String(dataT))}catch(e){}
+ return rows.length;
+}
+async function persistSupabaseMembers(){
+ if(!OWN||!SB||!SBUSER||SBUSER.id!==ADMIN_UID)throw new Error('Bạn cần đăng nhập đúng tài khoản quản trị.');
+ const {data:existing,error:readError}=await SB.from('family_members').select('id');
+ if(readError)throw readError;
+ const rows=people.map(p=>({id:String(p.id),name:String(p.name||''),gender:p.gender||null,birth_date:p.birth||null,death_date:p.death||null,father_id:p.fatherId||null,mother_id:p.motherId||null,spouse_ids:p.spouseId?[p.spouseId]:[],photo_url:p.photoUrl||null,photo_path:p.photoPath||null,data:p,updated_at:new Date().toISOString()}));
+ if(rows.length){const {error}=await SB.from('family_members').upsert(rows,{onConflict:'id'});if(error)throw error}
+ const keep=new Set(rows.map(r=>r.id)),gone=(existing||[]).map(r=>r.id).filter(id=>!keep.has(id));
+ if(gone.length){const {error}=await SB.from('family_members').delete().in('id',gone);if(error)throw error}
+ const settingsData={notice:hasN(notice)?notice:null,saints,upd};
+ const {error:settingsError}=await SB.from('family_settings').upsert({id:'main',data:settingsData,updated_at:new Date().toISOString()},{onConflict:'id'});
+ if(settingsError)throw settingsError;
+ dataT=Date.now();dirty=false;try{localStorage.setItem(KEY+'-t',String(dataT))}catch(e){}
+}
+const save=()=>{dirty=true;try{localStorage.setItem(KEY,JSON.stringify(people));localStorage.setItem(KEY+'-notice',JSON.stringify(notice));localStorage.setItem(KEY+'-saints',JSON.stringify(saints));localStorage.setItem(KEY+'-t',Date.now());bad=false}catch(e){bad=true}
+ if(OWN&&SB){clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(async()=>{if(cloudSaving)return;cloudSaving=true;try{await persistSupabaseMembers();toast('Đã đồng bộ dữ liệu thành viên lên Supabase.')}catch(e){console.error('Supabase save:',e);toast('Chưa đồng bộ được lên Supabase: '+(e.message||e))}finally{cloudSaving=false}},250)}
+};
 const $=s=>document.querySelector(s);
 const hasN=n=>!!(n&&(n.img||n.text));
 const pack=t=>({v:2,t:t||Date.now(),people,notice:hasN(notice)?notice:null,saints});
@@ -606,7 +640,8 @@ $('#dv').onclick=e=>{if(e.target.classList.contains('big')){const z=$('#dz');z.i
  if(k==='child'){d.close();const s=by(p.spouseId);openForm(p.gender==='nam'?{fatherId:p.id,motherId:s&&s.id}:{motherId:p.id,fatherId:s&&s.id})}
  if(k==='spouse'){d.close();openForm({gender:p.gender==='nam'?'nu':'nam',spouseId:p.id})}
  if(k==='del'){if(!a.dataset.sure){a.dataset.sure=1;a.textContent='Bấm lần nữa để xóa';return}
-  people=people.filter(x=>x.id!==id);people.forEach(x=>['fatherId','motherId','spouseId'].forEach(f=>{if(x[f]===id)delete x[f]}));save();d.close();render()}
+  if(p&&p.photoPath)removeMemberPhoto(p.photoPath).catch(err=>console.warn('Không xóa được ảnh của thành viên:',err));
+   people=people.filter(x=>x.id!==id);people.forEach(x=>['fatherId','motherId','spouseId'].forEach(f=>{if(x[f]===id)delete x[f]}));save();d.close();render()}
 };
 $('#dv').onchange=e=>{if(e.target.id!=='dv-dir')return;const d=$('#dv'),id=d.dataset.id;fp=e.target.checked?id:null;view='tree';$('#q').value='';q='';d.close();render(1)};
 async function uploadMemberPhoto(dataUrl,personId){
@@ -701,10 +736,12 @@ $('#bak').onclick=()=>{const d=$('#db');
 };
 if(VIEW){const tb=document.querySelector('.tabs');tb.prepend(tb.querySelector('[data-v="bm"]'));tb.prepend(tb.querySelector('[data-v="gio"]'))}
 setInterval(()=>{if(!document.querySelector('dialog[open]'))render()},600000);
+try{await loadSupabaseMembers();$('#count').textContent=people.length?`${people.length} người`:'Chưa có dữ liệu';}
+catch(e){console.error('Không tải được gia phả từ Supabase:',e);$('#count').textContent='Không tải được dữ liệu từ máy chủ';toast('Không tải được dữ liệu gia phả từ Supabase: '+(e.message||e))}
 render(1);
 if(VIEW)showNotice();
-if(VIEW){const on=()=>UU()||DB;$('#upn').style.display=on()?'':'none';if(on())updCheck(false);if(!UU()&&DB)try{DB.doc('gp/meta').onSnapshot(()=>updCheck(false))}catch(e){}document.addEventListener('visibilitychange',()=>{if(on()&&!document.hidden&&Date.now()-updAt>300000)updCheck(false)})}
-else if(DB){(async()=>{try{const j=await dbPull();if(j&&j.t>dataT&&!dirty){const u=unpack(j);people=u.ps;if(u.hn)notice=u.n;if(u.hs)saints=u.sa;dataT=j.t;fp=null;render(1)}}catch(e){}})()}
+if(VIEW){$('#upn').style.display='none';document.addEventListener('visibilitychange',async()=>{if(!document.hidden){try{await loadSupabaseMembers();render(1)}catch(e){console.warn('Làm mới dữ liệu:',e)}}})}
+
 })();</script>
 
 
