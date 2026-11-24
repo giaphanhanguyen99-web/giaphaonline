@@ -205,6 +205,28 @@ body{background:#fff;color:#000;font-size:12px}
 .person,.row,.sg{break-inside:avoid;border-color:#999}
 a{color:#000}
 }
+
+/* Kho tư liệu dòng họ */
+.ar-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.ar-toolbar select,.ar-toolbar input{width:auto;min-width:180px;flex:1}
+.ar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.ar-card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px;min-width:0}
+.ar-card h3{margin:0 0 6px;font-size:1.08rem}
+.ar-meta{font-size:.82rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin:5px 0}
+.ar-desc{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0}
+.ar-files{display:grid;gap:7px;margin:10px 0}
+.ar-file{display:flex;gap:8px;align-items:center;overflow-wrap:anywhere;font-size:.9rem}
+.ar-file img{width:58px;height:58px;object-fit:cover;border-radius:5px;border:1px solid var(--line)}
+.ar-file audio{width:100%;max-width:260px}
+.ar-card .bar{margin-top:10px}
+.ar-private{font-size:.78rem;color:var(--danger)}
+.ar-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ar-form label{display:flex;flex-direction:column;gap:5px}
+.ar-form .w{grid-column:1/-1}
+.ar-existing{display:grid;gap:6px}
+.ar-existing label{display:flex;flex-direction:row;align-items:center;gap:8px}
+@media(max-width:560px){.ar-form{grid-template-columns:1fr}.ar-form .w{grid-column:auto}.ar-toolbar select,.ar-toolbar input{width:100%}}
+
 </style>
 </head>
 <body>
@@ -214,10 +236,10 @@ a{color:#000}
  <div class="actions"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="auth-login" class="vw">Đăng nhập quản trị</button><button id="auth-logout" class="pa">Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button><button id="ld" class="vw">Nạp dữ liệu mới</button><button id="prt">In</button><button id="bak" class="pa">Sao lưu và nhập dữ liệu</button><button id="du" class="pa">Tự cập nhật app con</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
 </header>
 <input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
-<div class="tabs"><button data-v="tree" aria-pressed="false">Cây gia phả</button><button data-v="list" aria-pressed="false">Danh sách</button><button data-v="gio" aria-pressed="false">Ngày giỗ</button><button data-v="bm" aria-pressed="false">Ngày bổn mạng</button><button data-v="st" aria-pressed="false" class="pa" id="tst">Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">Thông báo</button></div>
+<div class="tabs"><button data-v="tree" aria-pressed="false">Cây gia phả</button><button data-v="list" aria-pressed="false">Danh sách</button><button data-v="gio" aria-pressed="false">Ngày giỗ</button><button data-v="bm" aria-pressed="false">Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">Kho tư liệu</button><button data-v="st" aria-pressed="false" class="pa" id="tst">Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">Thông báo</button></div>
 <p class="ph" id="ph"></p><div id="bn"></div><main id="main"></main><div id="toast" role="status" hidden=""></div>
 </div>
-<dialog id="dv"></dialog><dialog id="df"></dialog><dialog id="db"></dialog><dialog id="dz"></dialog><dialog id="dn"></dialog><dialog id="ds"></dialog><dialog id="dup"></dialog>
+<dialog id="dv"></dialog><dialog id="df"></dialog><dialog id="db"></dialog><dialog id="dz"></dialog><dialog id="dn"></dialog><dialog id="ds"></dialog><dialog id="dup"></dialog><dialog id="da"></dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="seed" type="application/json">{"t":0,"people":[],"upd":"https://script.google.com/macros/s/AKfycbzlkuuHlzFe7Zuq4-E5CFqjktqrmpaydT8cVZCdQPHyO4I-JQ_mYOVjejFQeudy_K-I/exec"}</script>
 <script>(async()=>{
@@ -386,7 +408,7 @@ if(OWN&&SBUSER)$('#auth-status').textContent='Đã đăng nhập quản trị';e
 $('#auth-login').onclick=async()=>{if(location.protocol==='file:'){toast('Cần đưa website lên một địa chỉ HTTPS trước khi đăng nhập Google. Ta sẽ cấu hình địa chỉ này ở bước triển khai website.');return}if(!SB){toast('Không tải được thư viện kết nối Supabase. Hãy kiểm tra kết nối Internet rồi tải lại trang.');return}const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)toast('Không đăng nhập được: '+error.message)};
 $('#auth-logout').onclick=async()=>{if(SB){const {error}=await SB.auth.signOut();if(error){toast('Không đăng xuất được: '+error.message);return}}location.reload()};
 function buildHtml(t,v){const c=document.documentElement.cloneNode(true);
- ['#main','#bn','#dv','#df','#db','#dz','#dn','#ds','#dup'].forEach(s=>{const e=c.querySelector(s);e.innerHTML='';e.removeAttribute('open');e.removeAttribute('data-id')});
+ ['#main','#bn','#dv','#df','#db','#dz','#dn','#ds','#dup','#da'].forEach(s=>{const e=c.querySelector(s);e.innerHTML='';e.removeAttribute('open');e.removeAttribute('data-id')});
  ['#count','#updm','#today','#ph','#toast'].forEach(s=>{c.querySelector(s).textContent=''});c.querySelector('#toast').setAttribute('hidden','');
  c.querySelector('#seed').textContent=JSON.stringify({t,people,notice:hasN(notice)?notice:null,saints,upd}).replace(/</g,'\\u003c');
  if(v){c.setAttribute('data-mode','view');c.querySelector('title').textContent='Gia phả (xem)'}
@@ -490,6 +512,7 @@ function render(force){
  const m=$('#main');
  if(!q&&view==='nt'&&!VIEW){m.innerHTML=noticeForm();bindNotice();return}
   if(!q&&view==='st'&&!VIEW){m.innerHTML=saintsView();bindSaints();return}
+  if(view==='archives'){m.innerHTML=archiveView();bindArchives();return}
  if(!people.length&&VIEW){m.innerHTML='<div class="empty"><h2>Chưa có dữ liệu</h2><p>Bấm "Nạp dữ liệu mới" rồi chọn tệp gia-pha-moi-nhat.json trong thư mục sao lưu Google Drive.</p></div>';return}
  if(!people.length){m.innerHTML='<div class="empty"><h2>Bắt đầu từ người đứng đầu dòng họ</h2><p>Thêm vị tổ tiên xa nhất bạn biết. Sau đó mở trang của từng người để thêm con cháu và vợ/chồng.</p><button class="pri" id="e1">Thêm người đầu tiên</button></div>';$('#e1').onclick=()=>openForm();return}
  if(!q&&view==='gio'){m.innerHTML=gioView();return}
@@ -557,6 +580,93 @@ function openSaint(i){const d=$('#ds'),s=i>=0?SL()[i]:['','',''];if(!s)return;
   saints=L;save();d.close();render();toast('Đã lưu Thánh '+name+'.')};
  const dl=$('#s-del');if(dl)dl.onclick=()=>{if(!dl.dataset.sure){dl.dataset.sure=1;dl.textContent='Bấm lần nữa để xóa';return}saints=SL().filter((_,j)=>j!==i);save();d.close();render();toast('Đã xóa Thánh '+s[0]+' khỏi danh sách.')};
  d.showModal();$('#s-n').focus()}
+
+const ARCHIVE_CATEGORIES=['Ảnh xưa của dòng họ','Gia phả và văn bản','Nhà thờ họ và di tích','Sự kiện dòng họ','Tài liệu và kỷ vật'];
+const ARCHIVE_ACCEPT='.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.mp3,.wav,.m4a,.ogg,.aac';
+let archiveRows=[],archiveLoaded=false,archiveLoading=false,archiveFilter='all';
+const archiveFileOK=f=>{const n=(f.name||'').toLowerCase(),t=(f.type||'').toLowerCase();return /\.(jpe?g|png|webp|pdf|doc|docx|mp3|wav|m4a|ogg|aac)$/i.test(n)||/^(image\/(jpeg|png|webp)|application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document|audio\/)/.test(t)};
+const archiveIsAudio=f=>/^audio\//i.test(f.mime_type||'')||/\.(mp3|wav|m4a|ogg|aac)$/i.test(f.file_name||'');
+const archiveSize=n=>n<1024*1024?(n/1024).toFixed(0)+' KB':(n/1024/1024).toFixed(1)+' MB';
+async function refreshArchives(){
+ if(!SB)throw new Error('Không khởi tạo được kết nối Supabase.');
+ const {data,error}=await SB.from('family_archives').select('*').order('created_at',{ascending:false});
+ if(error)throw error;
+ archiveRows=await Promise.all((data||[]).map(async row=>{
+  const files=Array.isArray(row.attachments)?row.attachments:[];
+  const withUrls=await Promise.all(files.map(async f=>{
+   try{const {data,error}=await SB.storage.from(ARCHIVE_BUCKET).createSignedUrl(f.path,3600);return {...f,url:error?'':data?.signedUrl||''}}
+   catch(e){return {...f,url:''}}
+  }));
+  return {...row,attachments:withUrls};
+ }));
+ archiveLoaded=true;
+}
+function archiveView(){
+ if(!archiveLoaded){if(!archiveLoading){archiveLoading=true;refreshArchives().then(()=>{archiveLoading=false;render()}).catch(e=>{archiveLoading=false;archiveLoaded=false;toast('Chưa tải được Kho tư liệu: '+(e.message||e))})}
+  return '<section><h2>Kho tư liệu dòng họ</h2><p class="sub">Đang tải tư liệu…</p></section>'}
+ const term=norm(q).trim();
+ const rows=archiveRows.filter(a=>(archiveFilter==='all'||a.category===archiveFilter)&&(!term||norm([a.title,a.category,a.description,a.archive_date,a.contributor].join(' ')).includes(term)));
+ return `<section><h2>Kho tư liệu dòng họ</h2><p class="sub">Lưu giữ hình ảnh, văn bản, âm thanh và những câu chuyện của các thế hệ trong dòng họ</p>
+ <div class="ar-toolbar"><select id="ar-filter" aria-label="Lọc danh mục"><option value="all">Tất cả danh mục</option>${ARCHIVE_CATEGORIES.map(x=>'<option '+(archiveFilter===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select>${OWN?'<button class="pri" id="ar-add">+ Thêm tư liệu</button>':''}</div>
+ <p class="sub">${rows.length} tư liệu${archiveRows.length!==rows.length?' phù hợp':''}${OWN?' · Tư liệu mới mặc định ở chế độ riêng tư':''}</p>
+ ${rows.length?'<div class="ar-grid">'+rows.map(a=>`<article class="ar-card"><h3>${esc(a.title)}</h3><div class="ar-meta"><span>${esc(a.category)}</span>${a.archive_date?'<span>· '+esc(a.archive_date)+'</span>':''}</div><div class="ar-meta">${a.contributor?'<span>Người đóng góp: '+esc(a.contributor)+'</span>':''}<span class="${a.is_public?'':'ar-private'}">${a.is_public?'Công khai':'Riêng tư'}</span></div>${a.description?'<div class="ar-desc">'+esc(a.description)+'</div>':''}
+ <div class="ar-files">${a.attachments.map(f=>f.mime_type?.startsWith('image/')&&f.url?'<a class="ar-file" href="'+esc(f.url)+'" target="_blank" rel="noopener"><img src="'+esc(f.url)+'" alt=""><span>'+esc(f.file_name)+' · '+archiveSize(+f.size||0)+'</span></a>':archiveIsAudio(f)&&f.url?'<div class="ar-file"><div><div>'+esc(f.file_name)+'</div><audio controls preload="none" src="'+esc(f.url)+'"></audio></div></div>':'<div class="ar-file"><span>📎</span>'+(f.url?'<a href="'+esc(f.url)+'" target="_blank" rel="noopener">'+esc(f.file_name)+'</a>':'<span>'+esc(f.file_name)+' (không tạo được liên kết)</span>')+' <small>'+archiveSize(+f.size||0)+'</small></div>').join('')}</div>
+ ${OWN?'<div class="bar"><button data-archive-edit="'+esc(a.id)+'">Sửa</button><button class="danger" data-archive-delete="'+esc(a.id)+'">Xóa</button></div>':''}</article>`).join('')+'</div>':'<p class="sub">Chưa có tư liệu trong danh mục này.</p>'}
+ </section>`;
+}
+function bindArchives(){
+ const f=$('#ar-filter');if(f)f.onchange=()=>{archiveFilter=f.value;render()};
+ const add=$('#ar-add');if(add)add.onclick=()=>openArchiveForm();
+ $('#main').querySelectorAll('[data-archive-edit]').forEach(b=>b.onclick=()=>{const a=archiveRows.find(x=>x.id===b.dataset.archiveEdit);if(a)openArchiveForm(a)});
+ $('#main').querySelectorAll('[data-archive-delete]').forEach(b=>b.onclick=async()=>{const a=archiveRows.find(x=>x.id===b.dataset.archiveDelete);if(!a)return;if(!confirm('Xóa tư liệu “'+a.title+'” và các tệp đính kèm?'))return;
+  b.disabled=true;try{const {error}=await SB.from('family_archives').delete().eq('id',a.id);if(error)throw error;const paths=(a.attachments||[]).map(x=>x.path).filter(Boolean);if(paths.length){const {error:se}=await SB.storage.from(ARCHIVE_BUCKET).remove(paths);if(se)console.warn('Không xóa được một số tệp:',se.message)}await refreshArchives();render();toast('Đã xóa tư liệu.')}catch(e){b.disabled=false;toast('Chưa xóa được tư liệu: '+(e.message||e))}});
+}
+function openArchiveForm(item=null){
+ if(!OWN||!SB||!SBUSER||SBUSER.id!==ADMIN_UID){toast('Bạn cần đăng nhập đúng tài khoản quản trị để quản lý tư liệu.');return}
+ const d=$('#da'),a=item||{},existing=Array.isArray(a.attachments)?a.attachments:[],g=k=>$('#ar-'+k);
+ d.innerHTML=`<h2>${item?'Sửa tư liệu':'Thêm tư liệu mới'}</h2><div class="ar-form">
+ <label class="w">Tên tư liệu<input id="ar-title" maxlength="180" required value="${esc(a.title||'')}" placeholder="Ví dụ: Ảnh đại gia đình năm 1965"></label>
+ <label>Danh mục<select id="ar-category">${ARCHIVE_CATEGORIES.map(x=>'<option '+(a.category===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select></label>
+ <label>Năm hoặc ngày tư liệu<input id="ar-date" maxlength="60" value="${esc(a.archive_date||'')}" placeholder="Ví dụ: 1965 hoặc 12/03/1980"></label>
+ <label>Người đóng góp<input id="ar-contributor" maxlength="120" value="${esc(a.contributor||'')}" placeholder="Tên người cung cấp tư liệu"></label>
+ <label>Liên hệ thành viên gia phả (không bắt buộc)<select id="ar-member"><option value="">Không liên kết</option>${people.map(p=>'<option value="'+esc(p.id)+'" '+(a.related_member_id===p.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')}</select></label>
+ <label class="w">Mô tả / câu chuyện<textarea id="ar-description" rows="4" maxlength="5000" placeholder="Ghi lại bối cảnh, người trong ảnh, câu chuyện hoặc nguồn gốc tài liệu…">${esc(a.description||'')}</textarea></label>
+ <label class="w">Tệp đính kèm<input id="ar-files" type="file" multiple accept="${ARCHIVE_ACCEPT}"><small class="sub">JPG, PNG, WEBP, PDF, DOC, DOCX, MP3, WAV, M4A, OGG, AAC. Tối đa 50 MB mỗi tệp.</small></label>
+ ${existing.length?'<div class="w"><b>Tệp hiện có</b><div class="ar-existing">'+existing.map((f,i)=>'<label><input type="checkbox" data-ar-keep="'+i+'" checked><span>'+esc(f.file_name)+' ('+archiveSize(+f.size||0)+')</span></label>').join('')+'</div><small class="sub">Bỏ chọn tệp muốn gỡ khỏi tư liệu.</small></div>':''}
+ <label class="w"><span><input id="ar-public" type="checkbox" style="width:auto" ${a.is_public?'checked':''}> Công khai tư liệu này cho khách truy cập</span><small class="sub">Nếu không chọn, chỉ quản trị viên xem được.</small></label>
+ </div><p class="err" id="ar-error" role="alert"></p><div class="bar"><button class="pri" id="ar-save">Lưu tư liệu</button><button id="ar-cancel">Hủy</button></div>`;
+ g('cancel').onclick=()=>d.close();
+ g('save').onclick=async()=>{
+  const btn=g('save'),title=g('title').value.trim(),files=Array.from(g('files').files||[]);
+  if(!title){g('error').textContent='Hãy nhập tên tư liệu.';g('title').focus();return}
+  const invalid=files.find(f=>!archiveFileOK(f)||f.size>50*1024*1024);
+  if(invalid){g('error').textContent='Tệp “'+invalid.name+'” không đúng định dạng hỗ trợ hoặc vượt quá 50 MB.';return}
+  const kept=existing.filter((f,i)=>{const cb=d.querySelector('[data-ar-keep="'+i+'"]');return !cb||cb.checked});
+  btn.disabled=true;btn.textContent='Đang tải và lưu…';g('error').textContent='';
+  const id=a.id||crypto.randomUUID(),uploaded=[];
+  try{
+   for(const f of files){
+    const safe=f.name.replace(/[^\p{L}\p{N}._-]+/gu,'_').slice(-120)||'tep-tin';
+    const path=id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'-'+safe;
+    const {error}=await SB.storage.from(ARCHIVE_BUCKET).upload(path,f,{contentType:f.type||'application/octet-stream',upsert:false});
+    if(error)throw error;
+    uploaded.push({path,file_name:f.name,mime_type:f.type||'',size:f.size});
+   }
+   const row={id,title,category:g('category').value,archive_date:g('date').value.trim(),contributor:g('contributor').value.trim(),related_member_id:g('member').value||null,description:g('description').value.trim(),is_public:g('public').checked,attachments:[...kept,...uploaded],updated_at:new Date().toISOString()};
+   if(!a.id)row.created_by=SBUSER.id;
+   const {error}=await SB.from('family_archives').upsert(row,{onConflict:'id'});
+   if(error)throw error;
+   const removed=existing.filter(f=>!kept.some(k=>k.path===f.path)).map(f=>f.path).filter(Boolean);
+   if(removed.length){const {error:se}=await SB.storage.from(ARCHIVE_BUCKET).remove(removed);if(se)console.warn('Không xóa được tệp cũ:',se.message)}
+   d.close();archiveLoaded=false;await refreshArchives();render();toast('Đã lưu tư liệu vào Kho tư liệu dòng họ.');
+  }catch(e){
+   if(uploaded.length)await SB.storage.from(ARCHIVE_BUCKET).remove(uploaded.map(f=>f.path)).catch(()=>{});
+   btn.disabled=false;btn.textContent='Lưu tư liệu';g('error').textContent='Chưa lưu được: '+(e.message||e);
+  }
+ };
+ d.showModal();g('title').focus();
+}
+
 let updBusy=false,updAt=0;
 const sigOf=()=>JSON.stringify([people,hasN(notice)?notice:null,saints]);
 const DEFAULT_DRIVE_URL='https://drive.google.com/drive/u/3/folders/1ZAvYMp9M3LD5AWEnoT4AYbHo09zH8bn',DEFAULT_DRIVE_ID='1ZAvYMp9M3LD5AWEnoT4AYbHo09zH8bn';
