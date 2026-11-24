@@ -636,13 +636,13 @@ function archiveView(){
  }
  const term=norm(q).trim();
  const rows=archiveRows.filter(a=>(archiveFilter==='all'||a.category===archiveFilter)&&(!term||norm([a.title,a.category,a.description,a.date_label,a.archive_date,a.contributor].join(' ')).includes(term)));
- return \`<section><h2>Kho tư liệu dòng họ</h2><p class="sub">Lưu giữ hình ảnh, văn bản, âm thanh và những câu chuyện của các thế hệ trong dòng họ</p>
- <div class="ar-toolbar"><select id="ar-filter" aria-label="Lọc danh mục"><option value="all">Tất cả danh mục</option>\${ARCHIVE_CATEGORIES.map(x=>'<option '+(archiveFilter===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select>\${OWN?'<button class="pri" id="ar-add">+ Thêm tư liệu</button>':''}</div>
- <p class="sub">\${rows.length} tư liệu\${archiveRows.length!==rows.length?' phù hợp':''}\${OWN?' · Tư liệu mới mặc định ở chế độ riêng tư':''}</p>
- \${rows.length?'<div class="ar-grid">'+rows.map(a=>\`<article class="ar-card"><h3>\${esc(a.title)}</h3><div class="ar-meta"><span>\${esc(a.category)}</span>\${(a.date_label||a.archive_date)?'<span>· '+esc(a.date_label||a.archive_date)+'</span>':''}</div><div class="ar-meta">\${a.contributor?'<span>Người đóng góp: '+esc(a.contributor)+'</span>':''}\${OWN?'<span class="'+(a.is_public?'':'ar-private')+'">'+(a.is_public?'Công khai':'Riêng tư')+'</span>':''}</div>\${a.description?'<div class="ar-desc">'+esc(a.description)+'</div>':''}
- <div class="ar-files">\${a.attachments.map(f=>f.mime_type?.startsWith('image/')&&f.url?'<a class="ar-file" href="'+esc(f.url)+'" target="_blank" rel="noopener"><img src="'+esc(f.url)+'" alt=""><span>'+esc(f.file_name)+' · '+archiveSize(+f.size||0)+'</span></a>':archiveIsAudio(f)&&f.url?'<div class="ar-file"><div><div>'+esc(f.file_name)+'</div><audio controls preload="none" src="'+esc(f.url)+'"></audio></div></div>':'<div class="ar-file"><span>📎</span>'+(f.url?'<a href="'+esc(f.url)+'" target="_blank" rel="noopener">'+esc(f.file_name)+'</a>':'<span>'+esc(f.file_name)+' (không tạo được liên kết)</span>')+' <small>'+archiveSize(+f.size||0)+'</small></div>').join('')}</div>
- \${OWN?'<div class="bar"><button data-archive-edit="'+esc(a.id)+'">Sửa</button><button class="danger" data-archive-delete="'+esc(a.id)+'">Xóa</button></div>':''}</article>\`).join('')+'</div>':'<p class="sub">Chưa có tư liệu trong danh mục này.</p>'}
- </section>\`;
+ return `<section><h2>Kho tư liệu dòng họ</h2><p class="sub">Lưu giữ hình ảnh, văn bản, âm thanh và những câu chuyện của các thế hệ trong dòng họ</p>
+ <div class="ar-toolbar"><select id="ar-filter" aria-label="Lọc danh mục"><option value="all">Tất cả danh mục</option>${ARCHIVE_CATEGORIES.map(x=>'<option '+(archiveFilter===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select>${OWN?'<button class="pri" id="ar-add">+ Thêm tư liệu</button>':''}</div>
+ <p class="sub">${rows.length} tư liệu${archiveRows.length!==rows.length?' phù hợp':''}${OWN?' · Tư liệu mới mặc định ở chế độ riêng tư':''}</p>
+ ${rows.length?'<div class="ar-grid">'+rows.map(a=>`<article class="ar-card"><h3>${esc(a.title)}</h3><div class="ar-meta"><span>${esc(a.category)}</span>${(a.date_label||a.archive_date)?'<span>· '+esc(a.date_label||a.archive_date)+'</span>':''}</div><div class="ar-meta">${a.contributor?'<span>Người đóng góp: '+esc(a.contributor)+'</span>':''}${OWN?'<span class="'+(a.is_public?'':'ar-private')+'">'+(a.is_public?'Công khai':'Riêng tư')+'</span>':''}</div>${a.description?'<div class="ar-desc">'+esc(a.description)+'</div>':''}
+ <div class="ar-files">${a.attachments.map(f=>f.mime_type?.startsWith('image/')&&f.url?'<a class="ar-file" href="'+esc(f.url)+'" target="_blank" rel="noopener"><img src="'+esc(f.url)+'" alt=""><span>'+esc(f.file_name)+' · '+archiveSize(+f.size||0)+'</span></a>':archiveIsAudio(f)&&f.url?'<div class="ar-file"><div><div>'+esc(f.file_name)+'</div><audio controls preload="none" src="'+esc(f.url)+'"></audio></div></div>':'<div class="ar-file"><span>📎</span>'+(f.url?'<a href="'+esc(f.url)+'" target="_blank" rel="noopener">'+esc(f.file_name)+'</a>':'<span>'+esc(f.file_name)+' (không tạo được liên kết)</span>')+' <small>'+archiveSize(+f.size||0)+'</small></div>').join('')}</div>
+ ${OWN?'<div class="bar"><button data-archive-edit="'+esc(a.id)+'">Sửa</button><button class="danger" data-archive-delete="'+esc(a.id)+'">Xóa</button></div>':''}</article>`).join('')+'</div>':'<p class="sub">Chưa có tư liệu trong danh mục này.</p>'}
+ </section>`;
 }
 function bindArchives(){
  const f=$('#ar-filter');if(f)f.onchange=()=>{archiveFilter=f.value;render()};
@@ -664,17 +664,17 @@ function bindArchives(){
 function openArchiveForm(item=null){
  if(!OWN||!SB||!SBUSER||SBUSER.id!==ADMIN_UID){toast('Bạn cần đăng nhập đúng tài khoản quản trị để quản lý tư liệu.');return}
  const d=$('#da'),a=item||{},existing=Array.isArray(a.attachments)?a.attachments:[],g=k=>$('#ar-'+k);
- d.innerHTML=\`<h2>\${item?'Sửa tư liệu':'Thêm tư liệu mới'}</h2><div class="ar-form">
- <label class="w">Tên tư liệu<input id="ar-title" maxlength="180" required value="\${esc(a.title||'')}" placeholder="Ví dụ: Ảnh đại gia đình năm 1965"></label>
- <label>Danh mục<select id="ar-category">\${ARCHIVE_CATEGORIES.map(x=>'<option '+(a.category===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select></label>
- <label>Năm hoặc ngày tư liệu<input id="ar-date" maxlength="60" value="\${esc(a.date_label||a.archive_date||'')}" placeholder="Ví dụ: 1965 hoặc 12/03/1980"></label>
- <label>Người đóng góp<input id="ar-contributor" maxlength="120" value="\${esc(a.contributor||'')}" placeholder="Tên người cung cấp tư liệu"></label>
- <label>Liên hệ thành viên gia phả (không bắt buộc)<select id="ar-member"><option value="">Không liên kết</option>\${people.map(p=>'<option value="'+esc(p.id)+'" '+(a.related_member_id===p.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')}</select></label>
- <label class="w">Mô tả / câu chuyện<textarea id="ar-description" rows="4" maxlength="5000" placeholder="Ghi lại bối cảnh, người trong ảnh, câu chuyện hoặc nguồn gốc tài liệu…">\${esc(a.description||'')}</textarea></label>
- <label class="w">Tệp đính kèm<input id="ar-files" type="file" multiple accept="\${ARCHIVE_ACCEPT}"><small class="sub">JPG, PNG, WEBP, PDF, DOC, DOCX, MP3, WAV, M4A, OGG, AAC. Tối đa 100 MB mỗi tệp.</small></label>
- \${existing.length?'<div class="w"><b>Tệp hiện có</b><div class="ar-existing">'+existing.map(f=>'<label><input type="checkbox" data-ar-keep="'+esc(f.id)+'" checked><span>'+esc(f.file_name)+' ('+archiveSize(+f.size||0)+')</span></label>').join('')+'</div><small class="sub">Bỏ chọn tệp muốn gỡ khỏi tư liệu.</small></div>':''}
- <label class="w"><span><input id="ar-public" type="checkbox" style="width:auto" \${a.is_public?'checked':''}> Công khai tư liệu này cho khách truy cập</span><small class="sub">Nếu không chọn, chỉ quản trị viên xem được.</small></label>
- </div><p class="err" id="ar-error" role="alert"></p><div class="bar"><button class="pri" id="ar-save">Lưu tư liệu</button><button id="ar-cancel">Hủy</button></div>\`;
+ d.innerHTML=`<h2>${item?'Sửa tư liệu':'Thêm tư liệu mới'}</h2><div class="ar-form">
+ <label class="w">Tên tư liệu<input id="ar-title" maxlength="180" required value="${esc(a.title||'')}" placeholder="Ví dụ: Ảnh đại gia đình năm 1965"></label>
+ <label>Danh mục<select id="ar-category">${ARCHIVE_CATEGORIES.map(x=>'<option '+(a.category===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select></label>
+ <label>Năm hoặc ngày tư liệu<input id="ar-date" maxlength="60" value="${esc(a.date_label||a.archive_date||'')}" placeholder="Ví dụ: 1965 hoặc 12/03/1980"></label>
+ <label>Người đóng góp<input id="ar-contributor" maxlength="120" value="${esc(a.contributor||'')}" placeholder="Tên người cung cấp tư liệu"></label>
+ <label>Liên hệ thành viên gia phả (không bắt buộc)<select id="ar-member"><option value="">Không liên kết</option>${people.map(p=>'<option value="'+esc(p.id)+'" '+(a.related_member_id===p.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')}</select></label>
+ <label class="w">Mô tả / câu chuyện<textarea id="ar-description" rows="4" maxlength="5000" placeholder="Ghi lại bối cảnh, người trong ảnh, câu chuyện hoặc nguồn gốc tài liệu…">${esc(a.description||'')}</textarea></label>
+ <label class="w">Tệp đính kèm<input id="ar-files" type="file" multiple accept="${ARCHIVE_ACCEPT}"><small class="sub">JPG, PNG, WEBP, PDF, DOC, DOCX, MP3, WAV, M4A, OGG, AAC. Tối đa 100 MB mỗi tệp.</small></label>
+ ${existing.length?'<div class="w"><b>Tệp hiện có</b><div class="ar-existing">'+existing.map(f=>'<label><input type="checkbox" data-ar-keep="'+esc(f.id)+'" checked><span>'+esc(f.file_name)+' ('+archiveSize(+f.size||0)+')</span></label>').join('')+'</div><small class="sub">Bỏ chọn tệp muốn gỡ khỏi tư liệu.</small></div>':''}
+ <label class="w"><span><input id="ar-public" type="checkbox" style="width:auto" ${a.is_public?'checked':''}> Công khai tư liệu này cho khách truy cập</span><small class="sub">Nếu không chọn, chỉ quản trị viên xem được.</small></label>
+ </div><p class="err" id="ar-error" role="alert"></p><div class="bar"><button class="pri" id="ar-save">Lưu tư liệu</button><button id="ar-cancel">Hủy</button></div>`;
  g('cancel').onclick=()=>d.close();
  g('save').onclick=async()=>{
   const btn=g('save'),title=g('title').value.trim(),files=Array.from(g('files').files||[]);
