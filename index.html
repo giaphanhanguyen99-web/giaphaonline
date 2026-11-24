@@ -584,7 +584,7 @@ function openSaint(i){const d=$('#ds'),s=i>=0?SL()[i]:['','',''];if(!s)return;
 
 const ARCHIVE_CATEGORIES=['Ảnh xưa của dòng họ','Gia phả và văn bản','Nhà thờ họ và di tích','Sự kiện dòng họ','Tài liệu và kỷ vật'];
 const ARCHIVE_ACCEPT='.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.mp3,.wav,.m4a,.ogg,.aac';
-let archiveRows=[],archiveLoaded=false,archiveLoading=false,archiveFilter='all';
+let archiveRows=[],archiveLoaded=false,archiveLoading=false,archiveFilter='all',archiveSort='newest';
 const archiveFileOK=f=>{
  const n=(f.name||'').toLowerCase(),t=(f.type||'').toLowerCase();
  return /\.(jpe?g|png|webp|pdf|doc|docx|mp3|wav|m4a|ogg|aac)$/i.test(n)
@@ -637,8 +637,16 @@ function archiveView(){
  }
  const term=norm(q).trim();
  const rows=archiveRows.filter(a=>(archiveFilter==='all'||a.category===archiveFilter)&&(!term||norm([a.title,a.category,a.description,a.date_label,a.archive_date,a.contributor].join(' ')).includes(term)));
+ const sortDate=a=>{let v=String(a.archive_date||a.date_label||'').trim();if(/^\d{4}$/.test(v))v+='-01-01';return v||'0000-00-00'};
+ rows.sort((a,b)=>{
+  if(archiveSort==='title')return String(a.title||'').localeCompare(String(b.title||''),'vi',{sensitivity:'base'});
+  if(archiveSort==='oldest')return String(a.created_at||'').localeCompare(String(b.created_at||''));
+  if(archiveSort==='date-newest')return sortDate(b).localeCompare(sortDate(a))||String(b.created_at||'').localeCompare(String(a.created_at||''));
+  if(archiveSort==='date-oldest')return sortDate(a).localeCompare(sortDate(b))||String(a.created_at||'').localeCompare(String(b.created_at||''));
+  return String(b.created_at||'').localeCompare(String(a.created_at||''));
+ });
  return `<section><h2>Kho tư liệu dòng họ</h2><p class="sub">Lưu giữ hình ảnh, văn bản, âm thanh và những câu chuyện của các thế hệ trong dòng họ</p>
- <div class="ar-toolbar"><select id="ar-filter" aria-label="Lọc danh mục"><option value="all">Tất cả danh mục</option>${ARCHIVE_CATEGORIES.map(x=>'<option '+(archiveFilter===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select>${OWN?'<button class="pri" id="ar-add">+ Thêm tư liệu</button>':''}</div>
+ <div class="ar-toolbar"><select id="ar-filter" aria-label="Lọc danh mục"><option value="all">Tất cả danh mục</option>${ARCHIVE_CATEGORIES.map(x=>'<option '+(archiveFilter===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select><select id="ar-sort" aria-label="Sắp xếp tư liệu"><option value="newest" ${archiveSort==='newest'?'selected':''}>Mới nhất trước</option><option value="oldest" ${archiveSort==='oldest'?'selected':''}>Cũ nhất trước</option><option value="title" ${archiveSort==='title'?'selected':''}>Tên tư liệu A–Z</option><option value="date-newest" ${archiveSort==='date-newest'?'selected':''}>Năm tư liệu: mới đến cũ</option><option value="date-oldest" ${archiveSort==='date-oldest'?'selected':''}>Năm tư liệu: cũ đến mới</option></select>${OWN?'<button class="pri" id="ar-add">+ Thêm tư liệu</button>':''}</div>
  <p class="sub">${rows.length} tư liệu${archiveRows.length!==rows.length?' phù hợp':''}${OWN?' · Tư liệu mới mặc định ở chế độ riêng tư':''}</p>
  ${rows.length?'<div class="ar-grid">'+rows.map(a=>`<article class="ar-card"><h3>${esc(a.title)}</h3><div class="ar-meta"><span>${esc(a.category)}</span>${(a.date_label||a.archive_date)?'<span>· '+esc(a.date_label||a.archive_date)+'</span>':''}</div><div class="ar-meta">${a.contributor?'<span>Người đóng góp: '+esc(a.contributor)+'</span>':''}${OWN?'<span class="'+(a.is_public?'':'ar-private')+'">'+(a.is_public?'Công khai':'Riêng tư')+'</span>':''}</div>${a.description?'<div class="ar-desc">'+esc(a.description)+'</div>':''}
  <div class="ar-files">${a.attachments.map(f=>f.mime_type?.startsWith('image/')&&f.url?'<a class="ar-file" href="'+esc(f.url)+'" target="_blank" rel="noopener"><img src="'+esc(f.url)+'" alt=""><span>'+esc(f.file_name)+' · '+archiveSize(+f.size||0)+'</span></a>':archiveIsAudio(f)&&f.url?'<div class="ar-file"><div><div>'+esc(f.file_name)+'</div><audio controls preload="none" src="'+esc(f.url)+'"></audio></div></div>':'<div class="ar-file"><span>📎</span>'+(f.url?'<a href="'+esc(f.url)+'" target="_blank" rel="noopener">'+esc(f.file_name)+'</a>':'<span>'+esc(f.file_name)+' (không tạo được liên kết)</span>')+' <small>'+archiveSize(+f.size||0)+'</small></div>').join('')}</div>
@@ -647,6 +655,7 @@ function archiveView(){
 }
 function bindArchives(){
  const f=$('#ar-filter');if(f)f.onchange=()=>{archiveFilter=f.value;render()};
+ const sort=$('#ar-sort');if(sort)sort.onchange=()=>{archiveSort=sort.value;render()};
  const add=$('#ar-add');if(add)add.onclick=()=>openArchiveForm();
  $('#main').querySelectorAll('[data-archive-edit]').forEach(b=>b.onclick=()=>{const a=archiveRows.find(x=>x.id===b.dataset.archiveEdit);if(a)openArchiveForm(a)});
  $('#main').querySelectorAll('[data-archive-delete]').forEach(b=>b.onclick=async()=>{
