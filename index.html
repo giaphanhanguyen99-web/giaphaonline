@@ -222,7 +222,7 @@ a{color:#000}
 .ar-private{font-size:.78rem;color:var(--danger)}
 .ar-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ar-form label{display:flex;flex-direction:column;gap:5px}
-.ar-form label:has(#ar-contributor),.ar-form label:has(#ar-member){display:grid;grid-template-rows:2.8em auto;align-content:start;gap:5px;line-height:1.35}
+.ar-form .ar-align{display:grid;grid-template-rows:2.8em auto;align-content:start;gap:5px;line-height:1.35}.ar-form .ar-align>span{display:block;line-height:1.35}
 .ar-form .w{grid-column:1/-1}
 .ar-existing{display:grid;gap:6px}
 .ar-existing label{display:flex;flex-direction:row;align-items:center;gap:8px}
@@ -651,15 +651,19 @@ function bindArchives(){
  $('#main').querySelectorAll('[data-archive-edit]').forEach(b=>b.onclick=()=>{const a=archiveRows.find(x=>x.id===b.dataset.archiveEdit);if(a)openArchiveForm(a)});
  $('#main').querySelectorAll('[data-archive-delete]').forEach(b=>b.onclick=async()=>{
   const a=archiveRows.find(x=>x.id===b.dataset.archiveDelete);if(!a)return;
-  if(!confirm('Xóa tư liệu “'+a.title+'” và các tệp đính kèm?'))return;
-  b.disabled=true;
+  if(b.dataset.deleteArmed!=='yes'){
+   b.dataset.deleteArmed='yes';b.textContent='Nhấn lần nữa để xóa';
+   b._deleteArmTimer=setTimeout(()=>{b.dataset.deleteArmed='no';b.textContent='Xóa';},4000);
+   return;
+  }
+  clearTimeout(b._deleteArmTimer);b.dataset.deleteArmed='no';b.disabled=true;
   try{
    const {error}=await SB.from('family_archives').delete().eq('id',a.id);
    if(error)throw error;
    const paths=(a.attachments||[]).map(x=>x.path).filter(Boolean);
    if(paths.length){const {error:se}=await SB.storage.from(ARCHIVE_BUCKET).remove(paths);if(se)console.warn('Không xóa được một số tệp:',se.message)}
    await refreshArchives();render();toast('Đã xóa tư liệu.');
-  }catch(e){b.disabled=false;toast('Chưa xóa được tư liệu: '+(e.message||e))}
+  }catch(e){b.disabled=false;b.textContent='Xóa';toast('Chưa xóa được tư liệu: '+(e.message||e))}
  });
 }
 function openArchiveForm(item=null){
@@ -669,8 +673,8 @@ function openArchiveForm(item=null){
  <label class="w">Tên tư liệu<input id="ar-title" maxlength="180" required value="${esc(a.title||'')}" placeholder="Ví dụ: Ảnh đại gia đình năm 1965"></label>
  <label>Danh mục<select id="ar-category">${ARCHIVE_CATEGORIES.map(x=>'<option '+(a.category===x?'selected':'')+'>'+esc(x)+'</option>').join('')}</select></label>
  <label>Năm hoặc ngày tư liệu<input id="ar-date" maxlength="60" value="${esc(a.date_label||a.archive_date||'')}" placeholder="Ví dụ: 1965 hoặc 12/03/1980"></label>
- <label>Người đóng góp<input id="ar-contributor" maxlength="120" value="${esc(a.contributor||'')}" placeholder="Tên người cung cấp tư liệu"></label>
- <label>Liên hệ thành viên gia phả (không bắt buộc)<select id="ar-member"><option value="">Không liên kết</option>${people.map(p=>'<option value="'+esc(p.id)+'" '+(a.related_member_id===p.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')}</select></label>
+ <label class="ar-align"><span>Người đóng góp</span><input id="ar-contributor" maxlength="120" value="${esc(a.contributor||'')}" placeholder="Tên người cung cấp tư liệu"></label>
+ <label class="ar-align"><span>Liên hệ thành viên gia phả (không bắt buộc)</span><select id="ar-member"><option value="">Không liên kết</option>${people.map(p=>'<option value="'+esc(p.id)+'" '+(a.related_member_id===p.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')}</select></label>
  <label class="w">Mô tả / câu chuyện<textarea id="ar-description" rows="4" maxlength="5000" placeholder="Ghi lại bối cảnh, người trong ảnh, câu chuyện hoặc nguồn gốc tài liệu…">${esc(a.description||'')}</textarea></label>
  <label class="w">Tệp đính kèm<input id="ar-files" type="file" multiple accept="${ARCHIVE_ACCEPT}"><small class="sub">JPG, PNG, WEBP, PDF, DOC, DOCX, MP3, WAV, M4A, OGG, AAC. Tối đa 100 MB mỗi tệp.</small></label>
  ${existing.length?'<div class="w"><b>Tệp hiện có</b><div class="ar-existing">'+existing.map(f=>'<label><input type="checkbox" data-ar-keep="'+esc(f.id)+'" checked><span>'+esc(f.file_name)+' ('+archiveSize(+f.size||0)+')</span></label>').join('')+'</div><small class="sub">Bỏ chọn tệp muốn gỡ khỏi tư liệu.</small></div>':''}
