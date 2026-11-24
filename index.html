@@ -652,7 +652,7 @@ function openArchiveForm(item=null){
     if(error)throw error;
     uploaded.push({path,file_name:f.name,mime_type:f.type||'',size:f.size});
    }
-   const row={id,title,category:g('category').value,archive_date:g('date').value.trim(),contributor:g('contributor').value.trim(),related_member_id:g('member').value||null,description:g('description').value.trim(),is_public:g('public').checked,attachments:[...kept,...uploaded],updated_at:new Date().toISOString()};
+   const row={id,title,category:g('category').value,archive_date:g('date').value.trim(),contributor:g('contributor').value.trim(),related_member_id:g('member').value||null,description:g('description').value.trim(),is_public:g('public').checked,attachments:[...kept.map(({url,...file})=>file),...uploaded],updated_at:new Date().toISOString()};
    if(!a.id)row.created_by=SBUSER.id;
    const {error}=await SB.from('family_archives').upsert(row,{onConflict:'id'});
    if(error)throw error;
