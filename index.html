@@ -302,7 +302,7 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
  <div class="brand"><h1><span class="brand-mark">CỘI NGUỒN</span></h1><p class="brand-sub"><strong>Giuse Nguyễn Bá Đông</strong><span class="brand-motto">Gìn giữ cội nguồn · Kết nối thế hệ · Lưu truyền di sản</span></p><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
  <div class="actions"><button id="auth-login" class="vw">Đăng nhập</button><button id="auth-logout" class="pa">Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button></div>
 </header>
-<div id="admin-actions-source" hidden aria-hidden="true"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="ld" class="vw">Khôi phục từ tệp sao lưu</button><button id="bak" class="pa">Sao lưu và khôi phục dữ liệu</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
+<div id="admin-actions-source" hidden aria-hidden="true"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="ld" class="vw">Khôi phục từ tệp sao lưu</button><button id="bak" class="pa">Sao lưu và khôi phục dữ liệu</button><button id="db-export" class="pa">Tải bản sao cơ sở dữ liệu</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
 <div class="app-layout"><nav class="tabs" aria-label="Điều hướng chính"><div class="nav-heading">KHÔNG GIAN GIA ĐÌNH</div><button data-v="home" aria-pressed="true">⌂ &nbsp; Tổng quan</button><button data-v="tree" aria-pressed="false">♧ &nbsp; Cây gia phả</button><button data-v="list" aria-pressed="false">☷ &nbsp; Danh sách thành viên</button><button data-v="gio" aria-pressed="false">◷ &nbsp; Ngày giỗ</button><button data-v="bm" aria-pressed="false">✦ &nbsp; Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">▤ &nbsp; Kho tư liệu</button><button data-v="admin" aria-pressed="false" class="pa">⚙ &nbsp; Quản trị</button><button data-v="st" aria-pressed="false" class="pa" id="tst">✧ &nbsp; Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">▣ &nbsp; Thông báo</button></nav><section class="content-shell"><input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
 <p class="ph" id="ph"></p><div id="bn"></div><main id="main"></main><div id="toast" role="status" hidden=""></div></section></div>
 </div>
@@ -443,12 +443,33 @@ function homeView(){
    '<section class="home-footnote"><span>❧</span><p><b>Một dòng họ – nhiều thế hệ – một cội nguồn.</b><br>Mỗi thông tin được lưu giữ hôm nay sẽ là ký ức quý giá cho con cháu mai sau.</p><small>'+(roots?roots+' gốc tổ tiên được ghi nhận':'')+'</small></section>'+
   '</div>';
  }
+async function exportDatabaseBackup(){
+ if(!OWN||!SB||!SBUSER||SBUSER.id!==ADMIN_UID){toast('Chỉ tài khoản quản trị mới được tải bản sao cơ sở dữ liệu.');return}
+ const btn=document.querySelector('[data-admin-trigger="db-export"]');
+ if(btn){btn.disabled=true;btn.textContent='Đang tạo bản sao…'}
+ try{
+  const tables=['family_members','family_settings','family_archives','family_archive_files'];
+  const records={};
+  for(const table of tables){
+   const {data,error}=await SB.from(table).select('*');
+   if(error)throw new Error('Không thể đọc bảng '+table+': '+error.message);
+   records[table]=data||[];
+  }
+  const payload={format:'coi-nguon-database-backup',version:1,exportedAt:new Date().toISOString(),project:SUPABASE_URL,tables:records,notice:'Bản sao này chứa dữ liệu dạng bản ghi trong các bảng. Tệp ảnh, PDF, Word và âm thanh lưu trong Supabase Storage chưa được đóng gói vào tệp này.'};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='coi-nguon-database-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  toast('Đã tạo tệp sao lưu cơ sở dữ liệu. Kiểm tra thư mục Tải xuống.');
+ }catch(e){console.error('Database backup:',e);toast('Không thể tạo bản sao: '+(e.message||e))}
+ finally{if(btn){btn.disabled=false;btn.textContent='Tải bản sao về máy'}}
+}
 function adminView(){
  return '<div class="admin-page">'+
   '<section class="admin-intro"><p class="home-eyebrow">KHU VỰC DÀNH CHO QUẢN TRỊ VIÊN</p><h2>Quản trị gia phả</h2><p>Quản lý dữ liệu thành viên và các bản sao lưu của gia đình. Các chức năng chỉ hiển thị với tài khoản có quyền quản trị.</p></section>'+
   '<div class="admin-grid">'+
    '<section class="admin-card"><span class="admin-card-icon">✚</span><div><h3>Thành viên gia phả</h3><p>Thêm hồ sơ người thân mới vào gia phả.</p><button class="pri" data-admin-trigger="add">Thêm người</button></div></section>'+
-   '<section class="admin-card"><span class="admin-card-icon">☁</span><div><h3>Sao lưu lên đám mây</h3><p>Tạo bản sao lưu và đồng bộ dữ liệu theo cơ chế hiện có.</p><button class="pri" data-admin-trigger="cloud-backup">Sao lưu lên đám mây</button></div></section>'+
+   '<section class="admin-card"><span class="admin-card-icon">☁</span><div><h3>Sao lưu lên đám mây</h3><p>Tạo bản sao lưu và đồng bộ dữ liệu theo cơ chế hiện có.</p><button class="pri" data-admin-trigger="cloud-backup">Sao lưu lên đám mây</button></div></section><section class="admin-card"><span class="admin-card-icon">💾</span><div><h3>Tải bản sao cơ sở dữ liệu</h3><p>Xuất dữ liệu thành viên, thiết lập và thông tin kho tư liệu thành một tệp JSON lưu trên máy tính.</p><button class="pri" data-admin-trigger="db-export">Tải bản sao về máy</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">↥</span><div><h3>Khôi phục từ tệp</h3><p>Nạp dữ liệu gia phả từ tệp sao lưu JSON đã có.</p><button class="admin-action" data-admin-trigger="ld">Chọn tệp khôi phục</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">▤</span><div><h3>Sao lưu và khôi phục dữ liệu</h3><p>Xem, sao chép, tải xuống hoặc nạp dữ liệu sao lưu thủ công.</p><button class="admin-action" data-admin-trigger="bak">Mở công cụ sao lưu</button></div></section>'+
   '</div><p class="admin-note">Lưu ý: Khôi phục dữ liệu có thể thay thế dữ liệu hiện tại. Hãy tạo một bản sao lưu trước khi thực hiện.</p></div>';
@@ -912,7 +933,7 @@ function openUpd(){const d=$('#dup');
  g('s').onclick=()=>{const v=val();if(!v)return;upd=v;try{localStorage.setItem(KEY+'-upd',upd)}catch(e){}save();m('Đã lưu địa chỉ cập nhật. Hãy xuất lại bản xem trên thiết bị khác để áp dụng địa chỉ mới.')};
  g('d').onclick=()=>{upd='';g('u').value='';try{localStorage.setItem(KEY+'-upd','')}catch(e){}save();m('Đã tắt. Bản xem trên thiết bị khác xuất từ lần sau sẽ không tự cập nhật.')};
  g('x').onclick=()=>d.close();d.showModal()}
-$('#upn').onclick=()=>updCheck(true);
+$('#upn').onclick=()=>updCheck(true);$('#db-export').onclick=exportDatabaseBackup;
 $('#main').onclick=$('#bn').onclick=e=>{const a=e.target.closest('[data-admin-trigger]');if(a){const target=$('#'+a.dataset.adminTrigger);if(target)target.click();return}const n=e.target.closest('[data-home-v]');if(n){view=n.dataset.homeV;$('#q').value='';q='';if(view==='tree')fp=null;render(1);return}const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
 $('#q').oninput=e=>{q=e.target.value.trim();render()};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{view=b.dataset.v;$('#q').value='';q='';if(view==='tree')fp=null;render(1)});
