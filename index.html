@@ -722,6 +722,12 @@ function render(force){
  if(!people.length){m.innerHTML='<div class="empty"><h2>Bắt đầu từ người đứng đầu dòng họ</h2><p>Thêm vị tổ tiên xa nhất bạn biết. Sau đó mở trang của từng người để thêm con cháu và vợ/chồng.</p><button class="pri" id="e1">Thêm người đầu tiên</button></div>';$('#e1').onclick=()=>openForm();return}
  if(!q&&view==='gio'){m.innerHTML=gioView();return}
  if(!q&&view==='bm'){m.innerHTML=bmView();return}
+ if(q&&view==='tree'){
+  const nq=norm(q),rows=people.filter(p=>norm([sn(p),p.place,p.home,p.job,p.note].join(' ')).includes(nq)).sort((a,b)=>gen(a)-gen(b)||byBirth(a,b));
+  m.innerHTML=rows.length?'<section class="tree-find"><h2>Tìm người trên cây gia phả</h2><p class="sub">Chọn một người để chuyển đến đúng vị trí trên cây.</p>'+rows.map(p=>'<button class="row" data-tree-go="'+esc(p.id)+'"><b>'+esc(dn(p))+'</b><span class="r">Đời '+gen(p)+'</span><span>'+esc([yrs(p),ageS(p),p.home].filter(Boolean).join(' · '))+'</span><span class="r">Xem trên cây →</span></button>').join('')+'</section>':'<section class="tree-find"><h2>Không tìm thấy thành viên</h2><p class="sub">Thử tên ngắn hơn hoặc bỏ dấu tiếng Việt.</p></section>';
+  m.querySelectorAll('[data-tree-go]').forEach(b=>b.onclick=()=>locate(b.dataset.treeGo));
+  return;
+ }
  if(q||view==='list'){
   const nq=norm(q),rows=people.filter(p=>!nq||norm([sn(p),p.place,p.home,p.job,p.note].join(' ')).includes(nq)).sort((a,b)=>gen(a)-gen(b)||byBirth(a,b));
   m.innerHTML=rows.length?rows.map(p=>`<button class="row" data-id="${p.id}"><b>${esc(dn(p))}</b><span class="r">Đời ${gen(p)}</span><span>${esc([yrs(p),ageS(p),p.home].filter(Boolean).join(', '))}</span><span class="r">${esc(p.job||'')}</span></button>`).join(''):'<p class="sub">Không có kết quả. Thử gõ ít chữ hơn hoặc bỏ dấu.</p>';
