@@ -279,15 +279,31 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 .home-seal-tree circle{fill:currentColor;stroke:none}
 @media(max-width:900px){.home-seal-tree{width:76px;height:76px}}
 @media(max-width:560px){.home-seal{width:94px;height:94px;align-self:flex-start}.home-seal-tree{width:62px;height:62px}.home-seal small{font-size:.48rem}}
+
+/* Khu vực quản trị */
+.admin-page{display:grid;gap:16px;max-width:1100px}
+.admin-intro{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.admin-intro h2{margin:4px 0 8px;font-size:1.55rem;color:var(--ink)}
+.admin-intro>p:last-child{margin:0;color:var(--muted);line-height:1.65}
+.admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.admin-card{display:flex;align-items:flex-start;gap:14px;min-width:0;padding:18px;border:1px solid var(--line);border-radius:13px;background:var(--surface)}
+.admin-card-icon{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:11px;background:color-mix(in srgb,var(--brand-gold) 15%,var(--surface));color:var(--brand-gold);font-size:1.35rem}
+.admin-card h3{margin:0 0 5px;font-size:1.05rem;color:var(--ink)}
+.admin-card p{margin:0 0 13px;color:var(--muted);font-size:.9rem;line-height:1.55}
+.admin-card button{min-height:42px}
+.admin-action{border:1px solid var(--line);background:transparent;color:var(--ink);font-weight:600}
+.admin-note{margin:0;padding:12px 14px;border-left:3px solid var(--brand-gold);background:color-mix(in srgb,var(--brand-gold) 8%,var(--surface));color:var(--muted);font-size:.88rem;line-height:1.55}
+@media(max-width:650px){.admin-grid{grid-template-columns:minmax(0,1fr)}.admin-card{padding:15px}.admin-intro{padding:18px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
  <div class="brand"><h1><span class="brand-mark">CỘI NGUỒN</span></h1><p class="brand-sub"><strong>Giuse Nguyễn Bá Đông</strong><span class="brand-motto">Gìn giữ cội nguồn · Kết nối thế hệ · Lưu truyền di sản</span></p><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
- <div class="actions"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="auth-login" class="vw">Đăng nhập</button><button id="auth-logout" class="pa">Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button><button id="ld" class="vw">Khôi phục từ tệp sao lưu</button><button id="bak" class="pa">Sao lưu và khôi phục dữ liệu</button><button id="du" class="pa">Thiết lập bản xem trên thiết bị khác</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
+ <div class="actions"><button id="auth-login" class="vw">Đăng nhập</button><button id="auth-logout" class="pa">Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button></div>
 </header>
-<div class="app-layout"><nav class="tabs" aria-label="Điều hướng chính"><div class="nav-heading">KHÔNG GIAN GIA ĐÌNH</div><button data-v="home" aria-pressed="true">⌂ &nbsp; Tổng quan</button><button data-v="tree" aria-pressed="false">♧ &nbsp; Cây gia phả</button><button data-v="list" aria-pressed="false">☷ &nbsp; Danh sách thành viên</button><button data-v="gio" aria-pressed="false">◷ &nbsp; Ngày giỗ</button><button data-v="bm" aria-pressed="false">✦ &nbsp; Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">▤ &nbsp; Kho tư liệu</button><button data-v="st" aria-pressed="false" class="pa" id="tst">✧ &nbsp; Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">▣ &nbsp; Thông báo</button></nav><section class="content-shell"><input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
+<div id="admin-actions-source" hidden aria-hidden="true"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="ld" class="vw">Khôi phục từ tệp sao lưu</button><button id="bak" class="pa">Sao lưu và khôi phục dữ liệu</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
+<div class="app-layout"><nav class="tabs" aria-label="Điều hướng chính"><div class="nav-heading">KHÔNG GIAN GIA ĐÌNH</div><button data-v="home" aria-pressed="true">⌂ &nbsp; Tổng quan</button><button data-v="tree" aria-pressed="false">♧ &nbsp; Cây gia phả</button><button data-v="list" aria-pressed="false">☷ &nbsp; Danh sách thành viên</button><button data-v="gio" aria-pressed="false">◷ &nbsp; Ngày giỗ</button><button data-v="bm" aria-pressed="false">✦ &nbsp; Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">▤ &nbsp; Kho tư liệu</button><button data-v="admin" aria-pressed="false" class="pa">⚙ &nbsp; Quản trị</button><button data-v="st" aria-pressed="false" class="pa" id="tst">✧ &nbsp; Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">▣ &nbsp; Thông báo</button></nav><section class="content-shell"><input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
 <p class="ph" id="ph"></p><div id="bn"></div><main id="main"></main><div id="toast" role="status" hidden=""></div></section></div>
 </div>
 <dialog id="dv"></dialog><dialog id="df"></dialog><dialog id="db"></dialog><dialog id="dz"></dialog><dialog id="dn"></dialog><dialog id="ds"></dialog><dialog id="dup"></dialog><dialog id="da"></dialog>
@@ -427,6 +443,16 @@ function homeView(){
    '<section class="home-footnote"><span>❧</span><p><b>Một dòng họ – nhiều thế hệ – một cội nguồn.</b><br>Mỗi thông tin được lưu giữ hôm nay sẽ là ký ức quý giá cho con cháu mai sau.</p><small>'+(roots?roots+' gốc tổ tiên được ghi nhận':'')+'</small></section>'+
   '</div>';
  }
+function adminView(){
+ return '<div class="admin-page">'+
+  '<section class="admin-intro"><p class="home-eyebrow">KHU VỰC DÀNH CHO QUẢN TRỊ VIÊN</p><h2>Quản trị gia phả</h2><p>Quản lý dữ liệu thành viên và các bản sao lưu của gia đình. Các chức năng chỉ hiển thị với tài khoản có quyền quản trị.</p></section>'+
+  '<div class="admin-grid">'+
+   '<section class="admin-card"><span class="admin-card-icon">✚</span><div><h3>Thành viên gia phả</h3><p>Thêm hồ sơ người thân mới vào gia phả.</p><button class="pri" data-admin-trigger="add">Thêm người</button></div></section>'+
+   '<section class="admin-card"><span class="admin-card-icon">☁</span><div><h3>Sao lưu lên đám mây</h3><p>Tạo bản sao lưu và đồng bộ dữ liệu theo cơ chế hiện có.</p><button class="pri" data-admin-trigger="cloud-backup">Sao lưu lên đám mây</button></div></section>'+
+   '<section class="admin-card"><span class="admin-card-icon">↥</span><div><h3>Khôi phục từ tệp</h3><p>Nạp dữ liệu gia phả từ tệp sao lưu JSON đã có.</p><button class="admin-action" data-admin-trigger="ld">Chọn tệp khôi phục</button></div></section>'+
+   '<section class="admin-card"><span class="admin-card-icon">▤</span><div><h3>Sao lưu và khôi phục dữ liệu</h3><p>Xem, sao chép, tải xuống hoặc nạp dữ liệu sao lưu thủ công.</p><button class="admin-action" data-admin-trigger="bak">Mở công cụ sao lưu</button></div></section>'+
+  '</div><p class="admin-note">Lưu ý: Khôi phục dữ liệu có thể thay thế dữ liệu hiện tại. Hãy tạo một bản sao lưu trước khi thực hiện.</p></div>';
+}
 function gioView(){const u=upc(),miss=people.filter(p=>p.death&&!gioOf(p));
 return (u.length?u.map(x=>{const l=lunS(x.p);return `<button class="row gr ${x.p.gender==='nu'?'nu':'nam'}" data-id="${x.p.id}">${ava(x.p)}<b>${esc(dn(x.p))}</b><span class="r">${cdS(x.n.n)}</span><span>${x.g.sol?'Dương lịch: '+fmt(x.n.s):l}</span><span class="r">${esc(x.p.home||'')}</span>${x.g.sol&&l?`<span class="f">${l}</span>`:''}</button>`}).join(''):'<p class="sub">Chưa có ngày giỗ. Nhập ngày mất đầy đủ (ngày/tháng/năm) cho người đã mất.</p>')+(miss.length?`<p class="sub">Chưa đủ thông tin để tính giỗ: ${miss.map(p=>esc(dn(p))).join(', ')}.</p>`:'')}
 function birthTxt(p){const b=pd(p.birth);if(!b)return'';let s=esc(fmt(b));if(full(b))s+=' (tức '+lfmt(toL(b))+' âm lịch)';else s+=' ('+cc(b.y)+')';return s}
@@ -582,9 +608,11 @@ function nodeV(p,seen,d,A){seen.add(p.id);const s=by(p.spouseId);if(s)seen.add(s
  return `<li class="vi"><div class="vn">${cardV(p,1)}${s?`<span class="ring" title="Vợ/chồng"></span>${cardV(s,0)}`:''}</div>${ks.length?`<ul class="vl">${ks.map(c=>nodeV(c,seen,d+1,A)).join('')}</ul>`:''}</li>`}
 function render(force){
  $('#count').textContent=(people.length?`${people.length} người, ${Math.max(...people.map(p=>gen(p)))} đời`:'Chưa có dữ liệu')+(bad?'. Không lưu được: bộ nhớ trình duyệt đã đầy hoặc bị chặn. Hãy sao lưu ngay.':'')+(!VIEW&&dirty&&people.length?'. Có thay đổi chưa lưu vào tệp':'');
- $('#today').textContent=todayStr();$('#ph').innerHTML='<span>Đang xem: '+({home:'Tổng quan',tree:'Cây gia phả',list:'Danh sách thành viên',gio:'Ngày giỗ',bm:'Ngày bổn mạng',archives:'Kho tư liệu',st:'Các Thánh',nt:'Thông báo'}[view]||'Nội dung')+' · '+fmt(today())+'</span><button type="button" data-print>In mục này</button>';$('#bn').innerHTML=(view==='home'||view==='gio'||view==='bm'||view==='nt'||view==='st')&&!q?'':banner();$('#tnt').textContent='Thông báo'+(hasN(notice)?' ●':'');
+ $('#today').textContent=todayStr();$('#ph').innerHTML='<span>Đang xem: '+({home:'Tổng quan',tree:'Cây gia phả',list:'Danh sách thành viên',gio:'Ngày giỗ',bm:'Ngày bổn mạng',archives:'Kho tư liệu',admin:'Quản trị',st:'Các Thánh',nt:'Thông báo'}[view]||'Nội dung')+' · '+fmt(today())+'</span><button type="button" data-print>In mục này</button>';$('#bn').innerHTML=(view==='home'||view==='gio'||view==='bm'||view==='nt'||view==='st')&&!q?'':banner();$('#tnt').textContent='Thông báo'+(hasN(notice)?' ●':'');
  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===view&&!q)));
  const m=$('#main');
+ if(!q&&view==='admin'&&!VIEW){m.innerHTML=adminView();return}
+ if(!q&&view==='admin'&&VIEW){view='home'}
  if(!q&&view==='home'){m.innerHTML=homeView();return}
  if(!q&&view==='nt'&&!VIEW){m.innerHTML=noticeForm();bindNotice();return}
   if(!q&&view==='st'&&!VIEW){m.innerHTML=saintsView();bindSaints();return}
@@ -884,8 +912,8 @@ function openUpd(){const d=$('#dup');
  g('s').onclick=()=>{const v=val();if(!v)return;upd=v;try{localStorage.setItem(KEY+'-upd',upd)}catch(e){}save();m('Đã lưu địa chỉ cập nhật. Hãy xuất lại bản xem trên thiết bị khác để áp dụng địa chỉ mới.')};
  g('d').onclick=()=>{upd='';g('u').value='';try{localStorage.setItem(KEY+'-upd','')}catch(e){}save();m('Đã tắt. Bản xem trên thiết bị khác xuất từ lần sau sẽ không tự cập nhật.')};
  g('x').onclick=()=>d.close();d.showModal()}
-$('#du').onclick=openUpd;$('#upn').onclick=()=>updCheck(true);
-$('#main').onclick=$('#bn').onclick=e=>{const n=e.target.closest('[data-home-v]');if(n){view=n.dataset.homeV;$('#q').value='';q='';if(view==='tree')fp=null;render(1);return}const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
+$('#upn').onclick=()=>updCheck(true);
+$('#main').onclick=$('#bn').onclick=e=>{const a=e.target.closest('[data-admin-trigger]');if(a){const target=$('#'+a.dataset.adminTrigger);if(target)target.click();return}const n=e.target.closest('[data-home-v]');if(n){view=n.dataset.homeV;$('#q').value='';q='';if(view==='tree')fp=null;render(1);return}const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
 $('#q').oninput=e=>{q=e.target.value.trim();render()};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{view=b.dataset.v;$('#q').value='';q='';if(view==='tree')fp=null;render(1)});
 $('#add').onclick=()=>openForm();
