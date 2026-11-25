@@ -281,6 +281,7 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 @media(max-width:560px){.home-seal{width:94px;height:94px;align-self:flex-start}.home-seal-tree{width:62px;height:62px}.home-seal small{font-size:.48rem}}
 
 /* Khu vực quản trị */
+.admin-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.admin-stat{display:flex;gap:12px;align-items:center;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);min-width:0}.admin-stat-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:10px;background:color-mix(in srgb,var(--brand-gold) 15%,var(--surface));color:var(--brand-gold);font-size:1.25rem}.admin-stat>div{display:grid;min-width:0;gap:2px}.admin-stat small,.admin-stat span:last-child{color:var(--muted);font-size:.78rem}.admin-stat strong{font-size:1.5rem;line-height:1.2}.admin-insight{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;border:1px solid color-mix(in srgb,var(--brand-gold) 35%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--brand-gold) 7%,var(--surface))}.admin-insight p{margin:4px 0 0;color:var(--muted);font-size:.9rem}.admin-insight button{flex:none}@media(max-width:850px){.admin-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.admin-summary{grid-template-columns:1fr 1fr;gap:8px}.admin-stat{padding:12px;gap:9px}.admin-stat-icon{width:36px;height:36px}.admin-stat strong{font-size:1.25rem}.admin-insight{align-items:stretch;flex-direction:column}.admin-insight button{width:100%}}
 .admin-page{display:grid;gap:16px;max-width:1100px}
 .admin-intro{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .admin-intro h2{margin:4px 0 8px;font-size:1.55rem;color:var(--ink)}
@@ -557,11 +558,22 @@ async function restoreCompleteBackup(event){
 }
 
 function adminView(){
+ const total=people.length,living=people.filter(p=>!p.death).length,departed=total-living,generations=total?Math.max(...people.map(p=>gen(p))):0,roots=people.filter(isRoot).length,missingBirth=people.filter(p=>!p.birth).length;
+ const stat=(icon,label,value,detail)=>'<article class="admin-stat"><span class="admin-stat-icon">'+icon+'</span><div><small>'+label+'</small><strong>'+value.toLocaleString('vi-VN')+'</strong><span>'+detail+'</span></div></article>';
  return '<div class="admin-page">'+
   '<section class="admin-intro"><p class="home-eyebrow">KHU VỰC DÀNH CHO QUẢN TRỊ VIÊN</p><h2>Quản trị gia phả</h2><p>Quản lý dữ liệu thành viên và các bản sao lưu của gia đình. Các chức năng chỉ hiển thị với tài khoản có quyền quản trị.</p></section>'+
+  '<section class="admin-summary" aria-label="Tổng quan dữ liệu">'+
+   stat('♧','Tổng thành viên',total,'hồ sơ được ghi danh')+
+   stat('✧','Còn sống',living,'thành viên')+
+   stat('❖','Đã khuất',departed,'thành viên')+
+   stat('⌘','Số thế hệ',generations,'đời được xác định')+
+  '</section>'+
+  '<section class="admin-insight"><div><b>Thông tin dữ liệu</b><p>'+roots.toLocaleString('vi-VN')+' hồ sơ được xác định là điểm đầu của nhánh gia phả · '+missingBirth.toLocaleString('vi-VN')+' hồ sơ chưa ghi ngày sinh.</p></div><button class="admin-action" data-home-v="list">Mở danh sách thành viên</button></section>'+
   '<div class="admin-grid">'+
    '<section class="admin-card"><span class="admin-card-icon">✚</span><div><h3>Thành viên gia phả</h3><p>Thêm hồ sơ người thân mới vào gia phả.</p><button class="pri" data-admin-trigger="add">Thêm người</button></div></section>'+
-   '<section class="admin-card"><span class="admin-card-icon">☁</span><div><h3>Sao lưu lên đám mây</h3><p>Tạo bản sao lưu và đồng bộ dữ liệu theo cơ chế hiện có.</p><button class="pri" data-admin-trigger="cloud-backup">Sao lưu lên đám mây</button></div></section><section class="admin-card"><span class="admin-card-icon">💾</span><div><h3>Sao lưu dữ liệu và tệp</h3><p>Lưu dữ liệu gia phả, thiết lập, kho tư liệu và các tệp đính kèm vào một tệp. Bản sao có chứa thông tin riêng tư.</p><button class="pri" data-admin-trigger="db-export">Tạo bản sao lưu</button></div></section><section class="admin-card"><span class="admin-card-icon">↻</span><div><h3>Khôi phục bản sao đầy đủ</h3><p>Khôi phục dữ liệu và tệp từ bản sao của đúng dự án này. Dữ liệu ngoài bản sao sẽ được giữ nguyên.</p><button class="admin-action" data-admin-trigger="db-restore">Chọn tệp khôi phục</button></div></section>'+
+   '<section class="admin-card"><span class="admin-card-icon">☁</span><div><h3>Sao lưu lên đám mây</h3><p>Tạo bản sao lưu và đồng bộ dữ liệu theo cơ chế hiện có.</p><button class="pri" data-admin-trigger="cloud-backup">Sao lưu lên đám mây</button></div></section>'+
+   '<section class="admin-card"><span class="admin-card-icon">💾</span><div><h3>Sao lưu dữ liệu và tệp</h3><p>Lưu dữ liệu gia phả, thiết lập, kho tư liệu và các tệp đính kèm vào một tệp. Bản sao có chứa thông tin riêng tư.</p><button class="pri" data-admin-trigger="db-export">Tạo bản sao lưu</button></div></section>'+
+   '<section class="admin-card"><span class="admin-card-icon">↻</span><div><h3>Khôi phục bản sao đầy đủ</h3><p>Khôi phục dữ liệu và tệp từ bản sao của đúng dự án này. Dữ liệu ngoài bản sao sẽ được giữ nguyên.</p><button class="admin-action" data-admin-trigger="db-restore">Chọn tệp khôi phục</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">↥</span><div><h3>Khôi phục từ tệp</h3><p>Nạp dữ liệu gia phả từ tệp sao lưu JSON đã có.</p><button class="admin-action" data-admin-trigger="ld">Chọn tệp khôi phục</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">▤</span><div><h3>Sao lưu và khôi phục dữ liệu</h3><p>Xem, sao chép, tải xuống hoặc nạp dữ liệu sao lưu thủ công.</p><button class="admin-action" data-admin-trigger="bak">Mở công cụ sao lưu</button></div></section>'+
   '</div><p class="admin-note">Lưu ý: Khôi phục dữ liệu có thể thay thế dữ liệu hiện tại. Hãy tạo một bản sao lưu trước khi thực hiện.</p></div>';
