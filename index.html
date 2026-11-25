@@ -333,7 +333,7 @@ if(DLP){const co=URL.createObjectURL.bind(URL),oc=HTMLAnchorElement.prototype.cl
  HTMLAnchorElement.prototype.click=function(){if(this.download&&BL.has(this.href)){const f=this.download,b=BL.get(this.href);DLP.then(d=>d?d.save({filename:f,data:b}):oc.call(this)).catch(()=>{})}else oc.call(this)}}
 const UU=()=>upd&&!window.claude;
 const VIEW=!OWN,KEY=VIEW?'giapha-xem-v1':'giapha-v1';
-let people=[],view='home',q='',notice=null,fp=null,treeScope='all',saints=null,upd='',updMsg='',dataT=0,tmode='detail';
+let people=[],view='home',q='',notice=null,fp=null,treeScope='all',saints=null,saintsCloudLoaded=false,upd='',updMsg='',dataT=0,tmode='detail';
 let dirty=false;const vSt=a=>Array.isArray(a)?a.filter(x=>Array.isArray(x)&&x[0]).map(x=>[String(x[0]),String(x[1]||''),String(x[2]||'')]):null;
 (function(){let ls=null,lt=0,sd=null;
  try{ls=JSON.parse(localStorage.getItem(KEY)||'null');lt=+localStorage.getItem(KEY+'-t')||0}catch(e){}
@@ -354,12 +354,25 @@ async function loadSupabaseMembers(){
  const rows=(data||[]).map(r=>{const p=r.data&&typeof r.data==='object'?r.data:{};return {...p,id:p.id||r.id}}).filter(p=>p.id&&p.name);
  const {data:settings,error:settingsError}=await SB.from('family_settings').select('data').eq('id','main').maybeSingle();
  if(settingsError)throw settingsError;
+ let saintRows=null;
+ try{
+  const {data:cloudSaints,error:saintError}=await SB.from('family_saints').select('name,feast_day,description,sort_order').eq('is_active',true).order('sort_order',{ascending:true});
+  if(saintError)throw saintError;
+  saintRows=Array.isArray(cloudSaints)?cloudSaints:[];
+  saintsCloudLoaded=true;
+ }catch(e){
+  saintsCloudLoaded=false;
+  console.warn('Không tải được danh sách Thánh từ family_saints; dùng dữ liệu dự phòng:',e);
+ }
  people=rows;
  if(settings&&settings.data&&typeof settings.data==='object'){
   const x=settings.data;
   notice=x.notice&&typeof x.notice==='object'?x.notice:null;
-  saints=vSt(x.saints);
+  if(!saintsCloudLoaded||!saintRows.length)saints=vSt(x.saints);
   if(typeof x.upd==='string'&&/^https:\/\//i.test(x.upd))upd=x.upd;
+ }
+ if(saintsCloudLoaded&&saintRows.length){
+  saints=saintRows.map(x=>[String(x.name||''),String(x.feast_day||''),String(x.description||'')]).filter(x=>x[0]);
  }
  dataT=Date.now();dirty=false;
  try{localStorage.setItem(KEY,JSON.stringify(people));localStorage.setItem(KEY+'-notice',JSON.stringify(notice));localStorage.setItem(KEY+'-saints',JSON.stringify(saints));localStorage.setItem(KEY+'-t',String(dataT))}catch(e){}
@@ -373,7 +386,15 @@ async function persistSupabaseMembers(){
  if(rows.length){const {error}=await SB.from('family_members').upsert(rows,{onConflict:'id'});if(error)throw error}
  const keep=new Set(rows.map(r=>r.id)),gone=(existing||[]).map(r=>r.id).filter(id=>!keep.has(id));
  if(gone.length){const {error}=await SB.from('family_members').delete().in('id',gone);if(error)throw error}
- const settingsData={notice:hasN(notice)?notice:null,saints,upd};
+ if(saintsCloudLoaded){
+  const {data:oldSaints,error:oldSaintsError}=await SB.from('family_saints').select('id');
+  if(oldSaintsError)throw oldSaintsError;
+  const oldIds=(oldSaints||[]).map(x=>x.id).filter(Boolean);
+  if(oldIds.length){const {error}=await SB.from('family_saints').update({is_active:false,updated_at:new Date().toISOString()}).in('id',oldIds);if(error)throw error}
+  const saintRows=(SL()||[]).filter(x=>x&&x[0]).map((x,i)=>({name:String(x[0]),feast_day:String(x[1]||''),description:String(x[2]||''),sort_order:i+1,is_active:true,updated_at:new Date().toISOString()})).filter(x=>/^\\d{2}\\/\\d{2}$/.test(x.feast_day));
+  if(saintRows.length){const {error}=await SB.from('family_saints').upsert(saintRows,{onConflict:'name,feast_day'});if(error)throw error}
+ }
+ const settingsData={notice:hasN(notice)?notice:null,upd};
  const {error:settingsError}=await SB.from('family_settings').upsert({id:'main',data:settingsData,updated_at:new Date().toISOString()},{onConflict:'id'});
  if(settingsError)throw settingsError;
  dataT=Date.now();dirty=false;try{localStorage.setItem(KEY+'-t',String(dataT))}catch(e){}
