@@ -460,14 +460,15 @@ function noticeCenterView(){
  return '<div class="admin-page"><section class="admin-intro"><p class="home-eyebrow">KHÔNG GIAN GIA ĐÌNH</p><h2>Trung tâm thông báo</h2><p>Tập trung thông báo tang sự đã phát hành và kho thông báo để mọi thành viên tiện theo dõi, tra cứu.</p>'+(OWN?'<button class="pri" data-funeral-notice>✝ Soạn thông báo tang sự</button>':'')+'</section><section class="home-panel" id="notice-center-list"><p class="sub">Đang tải thông báo…</p></section>'+(OWN?'<details class="home-panel" style="margin-top:18px"><summary style="cursor:pointer;font-weight:700">Thiết lập thông báo bảng tin cũ</summary><p class="sub">Thiết lập này điều khiển bảng thông báo cũ trên bản xem ngoại tuyến; không thay thế thông báo tang sự trong cơ sở dữ liệu.</p>'+noticeForm()+'</details>':'')+'</div>';
 }
 async function loadNoticeCenter(container){
- if(!SB||!container)return;
+ if(!container)return;
+ if(OWN){const form=container.querySelector('.nf');if(form)bindNotice()}
+ if(!SB){const target=container.querySelector('#notice-center-list');if(target)target.innerHTML='<p class="sub">Chưa kết nối được cơ sở dữ liệu để tải thông báo.</p>';return}
  const target=container.querySelector('#notice-center-list');if(!target)return;
  const {data,error}=await SB.from('family_funeral_notices').select('id,deceased_name,death_date,death_time,message,funeral_date,funeral_time,funeral_location,published_at').eq('status','published').order('published_at',{ascending:false});
  if(error){target.innerHTML='<p class="sub">Không tải được thông báo: '+esc(error.message)+'</p>';return}
  if(!data||!data.length){target.innerHTML='<p class="sub">Chưa có thông báo tang sự nào được phát hành.</p>';return}
  const fmtDate=s=>s?esc(String(s).split('-').reverse().join('/')):'Chưa ghi';
  target.innerHTML='<div class="home-panel-head"><div><p class="home-eyebrow">KHO LƯU TRỮ</p><h3>Tất cả thông báo ('+data.length+')</h3></div></div>'+data.map(n=>'<details style="border-bottom:1px solid var(--line);padding:12px 0"><summary style="cursor:pointer;font-weight:700">'+esc(n.deceased_name||'Thông báo tang sự')+' · '+fmtDate(n.death_date)+'</summary><article style="padding:12px 0"><p><b>Ngày mất:</b> '+fmtDate(n.death_date)+(n.death_time?' · '+esc(n.death_time):'')+'</p><div style="white-space:pre-wrap;margin:10px 0">'+esc(n.message||'')+'</div>'+(n.funeral_date||n.funeral_time||n.funeral_location?'<b>Lịch tang lễ</b>'+(n.funeral_date?'<p>Ngày: '+fmtDate(n.funeral_date)+'</p>':'')+(n.funeral_time?'<p>Giờ: '+esc(n.funeral_time)+'</p>':'')+(n.funeral_location?'<p>Địa điểm: '+esc(n.funeral_location)+'</p>':''):'<p class="sub">Lịch tang lễ sẽ được bổ sung sau khi gia đình thống nhất.</p>')+'<p class="sub">Phát hành: '+esc(n.published_at?new Date(n.published_at).toLocaleString('vi-VN'):'')+'</p></article></details>').join('');
- if(OWN){const form=container.querySelector('.nf');if(form)bindNotice()}
 }
 async function loadPublishedFuneralNotices(container){
  if(!SB||!container)return;
