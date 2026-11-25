@@ -391,7 +391,7 @@ async function persistSupabaseMembers(){
   if(oldSaintsError)throw oldSaintsError;
   const oldIds=(oldSaints||[]).map(x=>x.id).filter(Boolean);
   if(oldIds.length){const {error}=await SB.from('family_saints').update({is_active:false,updated_at:new Date().toISOString()}).in('id',oldIds);if(error)throw error}
-  const saintRows=(SL()||[]).filter(x=>x&&x[0]).map((x,i)=>({name:String(x[0]),feast_day:String(x[1]||''),description:String(x[2]||''),sort_order:i+1,is_active:true,updated_at:new Date().toISOString()})).filter(x=>/^\\d{2}\\/\\d{2}$/.test(x.feast_day));
+  const saintRows=(SL()||[]).filter(x=>x&&x[0]).map((x,i)=>({name:String(x[0]),feast_day:String(x[1]||''),description:String(x[2]||''),sort_order:i+1,is_active:true,updated_at:new Date().toISOString()})).filter(x=>/^\d{2}\/\d{2}$/.test(x.feast_day));
   if(saintRows.length){const {error}=await SB.from('family_saints').upsert(saintRows,{onConflict:'name,feast_day'});if(error)throw error}
  }
  const settingsData={notice:hasN(notice)?notice:null,upd};
