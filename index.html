@@ -649,7 +649,7 @@ function archiveView(){
   return '<section><h2>Kho tư liệu dòng họ</h2><p class="sub">Đang tải tư liệu…</p></section>';
  }
  const term=norm(q).trim();
- const rows=archiveRows.filter(a=>(archiveFilter==='all'||a.category===archiveFilter)&&(!term||norm([a.title,a.category,a.description,a.date_label,a.archive_date,a.contributor].join(' ')).includes(term)));
+ const rows=archiveRows.filter(a=>(archiveFilter==='all'||a.category===archiveFilter)&&(!term||norm([a.title,a.category,a.description,a.date_label,a.archive_date,a.contributor,people.find(p=>p.id===a.related_member_id)?.name||'',...(a.attachments||[]).map(f=>f.file_name)].join(' ')).includes(term)));
  const sortDate=a=>{let v=String(a.archive_date||a.date_label||'').trim();if(/^\d{4}$/.test(v))v+='-01-01';return v||'0000-00-00'};
  rows.sort((a,b)=>{
   if(archiveSort==='title')return String(a.title||'').localeCompare(String(b.title||''),'vi',{sensitivity:'base'});
