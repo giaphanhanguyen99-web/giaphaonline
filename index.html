@@ -259,10 +259,10 @@ a{color:#000}
 
 /* Homepage visual refinement: reliable Vietnamese fonts, stronger hierarchy and contrast */
 header .brand{min-width:min(100%,420px);flex:1 1 520px}
-header .brand-sub{color:#d6e0e9;font-size:.98rem;line-height:1.55}
+header .brand-sub{display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px;color:#f0f3f6;font-size:1rem;line-height:1.6;font-weight:500}header .brand-sub strong{color:#edcb7d;font-weight:800;letter-spacing:.025em}header .brand-motto{color:#f0f3f6;font-weight:600;letter-spacing:.01em}
 header #count,header #today,header #auth-status{display:block;margin-top:5px;color:#dce5ed;font-size:.9rem;line-height:1.5}
 header #auth-status{color:var(--brand-gold);font-weight:700}
-header .actions{flex:0 1 auto;align-items:center;justify-content:flex-end;gap:9px}
+header .actions{flex:0 1 auto;min-width:250px;align-items:center;justify-content:flex-end;gap:10px}header .actions button{min-height:44px;padding:10px 15px;white-space:nowrap;border-radius:9px;font-weight:600;transition:background .16s ease,border-color .16s ease,transform .16s ease}
 header #auth-login,header #ld{border-color:var(--brand-gold);background:var(--brand-gold);color:#172c42;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.14)}
 header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc98;transform:translateY(-1px)}
 .home-welcome-copy{max-width:700px}
@@ -272,7 +272,7 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 .home-seal{border-color:rgba(237,203,125,.72);color:#edcb7d;background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 8px rgba(226,194,124,.08),0 0 0 10px rgba(226,194,124,.06)}
 .home-seal span{font-family:"Be Vietnam Pro",sans-serif;font-size:3.6rem;font-weight:700;line-height:1}
 @media(max-width:850px){header .brand{flex-basis:100%}header .actions{justify-content:flex-start}}
-@media(max-width:560px){header{padding:18px}header .brand-sub{font-size:.88rem}header .actions{width:100%;justify-content:stretch}header .actions button{flex:1 1 45%}.home-welcome h2{font-size:clamp(1.75rem,7vw,2.25rem)}}
+@media(max-width:850px){header .brand{flex-basis:100%;min-width:0}header .actions{min-width:0;justify-content:flex-start}}@media(max-width:560px){header{padding:18px}header .brand-sub{font-size:.9rem;gap:3px 9px}header .brand-motto{flex-basis:100%}header .actions{width:100%;justify-content:stretch}header .actions button{flex:1 1 45%;white-space:normal}.home-welcome h2{font-size:clamp(1.75rem,7vw,2.25rem)}}
 
 .home-seal-tree{display:block;width:100px;height:100px;flex:none;color:currentColor}
 .home-seal-tree path,.home-seal-tree circle{fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
@@ -284,7 +284,7 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 <body>
 <div class="wrap">
 <header>
- <div class="brand"><h1><span class="brand-mark">CỘI NGUỒN</span></span></h1><p class="brand-sub">Giuse Nguyễn Bá Đông · Gìn giữ cội nguồn – Kết nối thế hệ – Lưu truyền di sản</p><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
+ <div class="brand"><h1><span class="brand-mark">CỘI NGUỒN</span></h1><p class="brand-sub"><strong>Giuse Nguyễn Bá Đông</strong><span class="brand-motto">Gìn giữ cội nguồn · Kết nối thế hệ · Lưu truyền di sản</span></p><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
  <div class="actions"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="auth-login" class="vw">Đăng nhập quản trị</button><button id="auth-logout" class="pa">Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button><button id="ld" class="vw">Khôi phục từ tệp sao lưu</button><button id="bak" class="pa">Sao lưu và khôi phục dữ liệu</button><button id="du" class="pa">Thiết lập bản xem trên thiết bị khác</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
 </header>
 <div class="app-layout"><nav class="tabs" aria-label="Điều hướng chính"><div class="nav-heading">KHÔNG GIAN GIA ĐÌNH</div><button data-v="home" aria-pressed="true">⌂ &nbsp; Tổng quan</button><button data-v="tree" aria-pressed="false">♧ &nbsp; Cây gia phả</button><button data-v="list" aria-pressed="false">☷ &nbsp; Danh sách thành viên</button><button data-v="gio" aria-pressed="false">◷ &nbsp; Ngày giỗ</button><button data-v="bm" aria-pressed="false">✦ &nbsp; Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">▤ &nbsp; Kho tư liệu</button><button data-v="st" aria-pressed="false" class="pa" id="tst">✧ &nbsp; Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">▣ &nbsp; Thông báo</button></nav><section class="content-shell"><input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
