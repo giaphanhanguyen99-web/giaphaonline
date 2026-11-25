@@ -389,8 +389,8 @@ function homeView(){
    '<section class="home-stats" aria-label="Thống kê gia phả">'+
     '<article class="home-stat"><span class="home-stat-icon">♧</span><span class="home-stat-label">Thành viên</span><strong>'+total.toLocaleString('vi-VN')+'</strong><small>được ghi danh</small></article>'+
     '<article class="home-stat"><span class="home-stat-icon">⌘</span><span class="home-stat-label">Thế hệ</span><strong>'+generations.toLocaleString('vi-VN')+'</strong><small>đời trong gia phả</small></article>'+
-    '<article class="home-stat"><span class="home-stat-icon">✧</span><span class="home-stat-label">Thành viên hiện tại</span><strong>'+living.toLocaleString('vi-VN')+'</strong><small>còn sống</small></article>'+
-    '<article class="home-stat"><span class="home-stat-icon">❖</span><span class="home-stat-label">Tổ tiên</span><strong>'+departed.toLocaleString('vi-VN')+'</strong><small>đã khuất được ghi nhớ</small></article>'+
+    '<article class="home-stat"><span class="home-stat-icon">✧</span><span class="home-stat-label">Chưa ghi ngày mất</span><strong>'+living.toLocaleString('vi-VN')+'</strong><small>thành viên chưa có ngày mất</small></article>'+
+    '<article class="home-stat"><span class="home-stat-icon">❖</span><span class="home-stat-label">Đã khuất</span><strong>'+departed.toLocaleString('vi-VN')+'</strong><small>thành viên đã ghi ngày mất</small></article>'+
    '</section>'+
    '<div class="home-columns"><section class="home-panel"><div class="home-panel-head"><div><p class="home-eyebrow">GHI NHỚ VÀ TRI ÂN</p><h3>Ngày giỗ sắp tới</h3></div><button class="home-text-link" data-home-v="gio">Xem lịch ngày giỗ →</button></div><div class="home-events">'+eventHtml+'</div></section>'+
    '<section class="home-panel home-shortcuts"><div class="home-panel-head"><div><p class="home-eyebrow">KHÁM PHÁ</p><h3>Các không gian gia đình</h3></div></div>'+
@@ -398,7 +398,7 @@ function homeView(){
    '<button class="home-shortcut" data-home-v="list"><span>☷</span><span><b>Thành viên</b><small>Tìm kiếm và xem hồ sơ người thân</small></span><i>→</i></button>'+
    '<button class="home-shortcut" data-home-v="archives"><span>▤</span><span><b>Kho tư liệu</b><small>Lưu giữ hình ảnh và tài liệu dòng họ</small></span><i>→</i></button>'+
    '<button class="home-shortcut" data-home-v="bm"><span>✦</span><span><b>Ngày bổn mạng</b><small>Ghi nhớ ngày lễ của các thành viên</small></span><i>→</i></button></section></div>'+
-   '<section class="home-footnote"><span>❧</span><p><b>Một dòng họ – nhiều thế hệ – một cội nguồn.</b><br>Mỗi thông tin được lưu giữ hôm nay sẽ là ký ức quý giá cho con cháu mai sau.</p><small>'+(roots?roots+' nhánh tổ tiên đầu nguồn đã được ghi nhận':'')+'</small></section>'+
+   '<section class="home-footnote"><span>❧</span><p><b>Một dòng họ – nhiều thế hệ – một cội nguồn.</b><br>Mỗi thông tin được lưu giữ hôm nay sẽ là ký ức quý giá cho con cháu mai sau.</p><small>'+(roots?roots+' gốc tổ tiên được ghi nhận':'')+'</small></section>'+
   '</div>';
  }
 function gioView(){const u=upc(),miss=people.filter(p=>p.death&&!gioOf(p));
@@ -859,7 +859,7 @@ function openUpd(){const d=$('#dup');
  g('d').onclick=()=>{upd='';g('u').value='';try{localStorage.setItem(KEY+'-upd','')}catch(e){}save();m('Đã tắt. Bản xem trên thiết bị khác xuất từ lần sau sẽ không tự cập nhật.')};
  g('x').onclick=()=>d.close();d.showModal()}
 $('#du').onclick=openUpd;$('#upn').onclick=()=>updCheck(true);
-$('#main').onclick=$('#bn').onclick=e=>{const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
+$('#main').onclick=$('#bn').onclick=e=>{const n=e.target.closest('[data-home-v]');if(n){view=n.dataset.homeV;$('#q').value='';q='';if(view==='tree')fp=null;render(1);return}const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
 $('#q').oninput=e=>{q=e.target.value.trim();render()};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{view=b.dataset.v;$('#q').value='';q='';if(view==='tree')fp=null;render(1)});
 $('#add').onclick=()=>openForm();
