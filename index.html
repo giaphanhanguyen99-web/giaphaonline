@@ -20,7 +20,7 @@ header{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-cont
 h1{font-size:2.25rem;line-height:1.12;color:var(--brand-navy)}
 header h1{letter-spacing:.025em;font-family:"Be Vietnam Pro",system-ui,sans-serif;font-weight:800}
 header .brand-sub{margin:5px 0 0;color:var(--muted);font-size:.95rem;letter-spacing:.02em}
-header .brand-mark{color:var(--brand-gold)}
+header .brand-mark{color:var(--brand-gold);display:inline-flex;align-items:center;gap:12px}header .brand-symbol{width:48px;height:48px;flex:none;display:block;color:var(--brand-gold)}header .brand-mark>span{display:inline-block}
 #count{margin:2px 0 0;color:var(--muted);font-size:.9rem}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -250,7 +250,7 @@ a{color:#000}
 <body>
 <div class="wrap">
 <header>
- <div class="brand"><h1><span class="brand-mark">CỘI NGUỒN</span></h1><p class="brand-sub">Giuse Nguyễn Bá Đông · Gìn giữ cội nguồn – Kết nối thế hệ – Lưu truyền di sản</p><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
+ <div class="brand"><h1><span class="brand-mark"><svg class="brand-symbol" viewBox="0 0 64 64" role="img" aria-label="Biểu tượng cây gia phả" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M32 49V22M32 35C25 29 20 23 19 15M32 35C39 29 44 23 45 15M32 28C27 22 27 15 32 8C37 15 37 22 32 28ZM19 22C12 22 8 18 7 12C14 11 19 14 21 20ZM45 22C52 22 56 18 57 12C50 11 45 14 43 20ZM32 49C26 48 22 44 19 39M32 49C38 48 42 44 45 39M19 39C13 40 9 37 7 32C14 30 19 32 22 37ZM45 39C51 40 55 37 57 32C50 30 45 32 42 37ZM32 49C27 53 23 56 18 58M32 49C37 53 41 56 46 58M32 49V59"/></g><g fill="currentColor"><circle cx="19" cy="27" r="1.8"/><circle cx="45" cy="27" r="1.8"/><circle cx="32" cy="5" r="1.5"/></g></svg><span>CỘI NGUỒN</span></span></h1><p class="brand-sub">Giuse Nguyễn Bá Đông · Gìn giữ cội nguồn – Kết nối thế hệ – Lưu truyền di sản</p><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
  <div class="actions"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="auth-login" class="vw">Đăng nhập quản trị</button><button id="auth-logout" class="pa">Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button><button id="ld" class="vw">Khôi phục từ tệp sao lưu</button><button id="bak" class="pa">Sao lưu và khôi phục dữ liệu</button><button id="du" class="pa">Thiết lập bản xem trên thiết bị khác</button><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
 </header>
 <div class="app-layout"><nav class="tabs" aria-label="Điều hướng chính"><div class="nav-heading">KHÔNG GIAN GIA ĐÌNH</div><button data-v="tree" aria-pressed="false">♧ &nbsp; Cây gia phả</button><button data-v="list" aria-pressed="false">☷ &nbsp; Danh sách thành viên</button><button data-v="gio" aria-pressed="false">◷ &nbsp; Ngày giỗ</button><button data-v="bm" aria-pressed="false">✦ &nbsp; Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">▤ &nbsp; Kho tư liệu</button><button data-v="st" aria-pressed="false" class="pa" id="tst">✧ &nbsp; Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">▣ &nbsp; Thông báo</button></nav><section class="content-shell"><input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
