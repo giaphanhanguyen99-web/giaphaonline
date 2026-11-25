@@ -420,7 +420,7 @@ const LMONTH=['','Giêng','Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín',
 const lfmt=l=>{const d=l[0]===1?'mồng một':l[0]===2?'mồng hai':l[0]===3?'mồng ba':l[0]===15?'ngày rằm':'ngày '+l[0];const m=l[1]===1?'tháng Giêng':l[1]===12?'tháng Chạp':'tháng '+LMONTH[l[1]];return `${d} ${m}${l[3]?' nhuận':''}, năm ${cc(l[2])}`};
 const todayStr=()=>{const t=today(),l=toL(t);return `Hôm nay: ${WD[new Date().getDay()]} ${fmt(t)}, âm lịch ${lfmt(l)}`};
 function ageOf(p){const b=pd(p.birth);if(!b)return null;const e=pd(p.death),t=e||today();let a=t.y-b.y;if(full(b)&&full(t)&&(t.m<b.m||(t.m===b.m&&t.d<b.d)))a--;return{a:Math.max(0,a),ap:!(full(b)&&full(t)),dead:!!e}}
-const ageS=p=>{const g=ageOf(p);return g?(g.dead?'thọ ':'')+(g.ap?'khoảng ':'')+g.a+' tuổi':''};
+const ageS=p=>{const g=ageOf(p);if(!g)return'';const a=g.a,approx=g.ap?'khoảng ':'';if(!g.dead)return approx+a+' tuổi';return (a<60?'Hưởng dương ':'Hưởng thọ ')+approx+a+' tuổi'};
 function lgOf(p){if(p.gio){const m=String(p.gio).match(/(\d{1,2})\s*[\/.\-]\s*(\d{1,2})/);if(m)return{d:+m[1],m:+m[2]}}const e=pd(p.death);if(full(e)){const l=toL(e);return{d:l[0],m:l[1]}}return null}
 function gioOf(p){const e=pd(p.death);if(full(e))return{d:e.d,m:e.m,sol:1};return lgOf(p)}
 function nextGio(g){const t=today(),t0=new Date(t.y,t.m-1,t.d);
