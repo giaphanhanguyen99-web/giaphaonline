@@ -456,6 +456,18 @@ function homeView(){
    '<section class="home-footnote"><span>❧</span><p><b>Một dòng họ – nhiều thế hệ – một cội nguồn.</b><br>Mỗi thông tin được lưu giữ hôm nay sẽ là ký ức quý giá cho con cháu mai sau.</p><small>'+(roots?roots+' gốc tổ tiên được ghi nhận':'')+'</small></section>'+
   '</div>';
  }
+async function loadPublishedFuneralNotices(container){
+ if(!SB||!container)return;
+ const dashboard=container.querySelector('.home-dashboard');if(!dashboard)return;
+ const {data,error}=await SB.from('family_funeral_notices').select('id,deceased_name,death_date,death_time,message,funeral_date,funeral_time,funeral_location,published_at').eq('status','published').order('published_at',{ascending:false}).limit(5);
+ if(error){console.warn('Không tải được thông báo tang sự:',error.message);return}
+ if(!data||!data.length)return;
+ if(container.querySelector('.funeral-notices-home'))return;
+ const dateFmt=s=>s?esc(String(s).split('-').reverse().join('/')):'Chưa ghi';
+ const cards=data.map(n=>'<article style="padding:16px;border:1px solid var(--line);border-left:4px solid #b91c1c;border-radius:12px;background:var(--surface);margin:12px 0"><h3 style="color:#b91c1c;margin:0 0 8px">'+esc(n.deceased_name||'Thông báo tang sự')+'</h3><p style="margin:4px 0"><b>Ngày mất:</b> '+dateFmt(n.death_date)+(n.death_time?' · '+esc(n.death_time):'')+'</p><div style="white-space:pre-wrap;margin:10px 0">'+esc(n.message||'')+'</div>'+(n.funeral_date||n.funeral_time||n.funeral_location?'<div style="padding-top:8px;border-top:1px solid var(--line)"><b>Lịch tang lễ</b>'+(n.funeral_date?'<p style="margin:4px 0">Ngày: '+dateFmt(n.funeral_date)+'</p>':'')+(n.funeral_time?'<p style="margin:4px 0">Giờ: '+esc(n.funeral_time)+'</p>':'')+(n.funeral_location?'<p style="margin:4px 0">Địa điểm: '+esc(n.funeral_location)+'</p>':'')+'</div>':'<p class="sub" style="margin:8px 0">Lịch tang lễ sẽ được bổ sung sau khi gia đình thống nhất.</p>')+'</article>').join('');
+ const section=document.createElement('section');section.className='home-panel funeral-notices-home';section.style.margin='20px 0';section.innerHTML='<div class="home-panel-head"><div><p class="home-eyebrow" style="color:#b91c1c">THÔNG TIN QUAN TRỌNG</p><h3 style="color:#b91c1c">Thông báo tang sự</h3></div></div><p class="sub">Các thông báo đã được quản sự xác nhận và phát hành.</p>'+cards;
+ const foot=dashboard.querySelector('.home-footnote');if(foot)dashboard.insertBefore(section,foot);else dashboard.appendChild(section);
+}
 async function backupTableRows(table){
  const rows=[],pageSize=500;let offset=0;
  while(true){
@@ -767,7 +779,7 @@ function render(force){
  const m=$('#main');
  if(!q&&view==='admin'&&!VIEW){m.innerHTML=adminView();return}
  if(!q&&view==='admin'&&VIEW){view='home'}
- if(!q&&view==='home'){m.innerHTML=homeView();return}
+ if(!q&&view==='home'){m.innerHTML=homeView();loadPublishedFuneralNotices(m);return}
  if(!q&&view==='nt'&&!VIEW){m.innerHTML=noticeForm();bindNotice();return}
   if(!q&&view==='st'&&!VIEW){m.innerHTML=saintsView();bindSaints();return}
   if(view==='archives'){m.innerHTML=archiveView();bindArchives();return}
