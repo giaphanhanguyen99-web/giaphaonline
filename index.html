@@ -319,7 +319,7 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 <div class="app-layout"><nav class="tabs" aria-label="Điều hướng chính"><div class="nav-heading">KHÔNG GIAN GIA ĐÌNH</div><button data-v="home" aria-pressed="true">⌂ &nbsp; Tổng quan</button><button data-v="tree" aria-pressed="false">♧ &nbsp; Cây gia phả</button><button data-v="list" aria-pressed="false">☷ &nbsp; Danh sách thành viên</button><button data-v="gio" aria-pressed="false">◷ &nbsp; Ngày giỗ</button><button data-v="bm" aria-pressed="false">✦ &nbsp; Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">▤ &nbsp; Kho tư liệu</button><button data-v="admin" aria-pressed="false" class="pa">⚙ &nbsp; Quản trị</button><button data-v="st" aria-pressed="false" class="pa" id="tst">✧ &nbsp; Các Thánh</button><button data-v="nt" aria-pressed="true" class="pa" id="tnt">▣ &nbsp; Thông báo</button></nav><section class="content-shell"><input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
 <p class="ph" id="ph"></p><div id="bn"></div><main id="main"></main><div id="toast" role="status" hidden=""></div></section></div>
 </div>
-<dialog id="dv"></dialog><dialog id="df"></dialog><dialog id="db"></dialog><dialog id="dz"></dialog><dialog id="dn"></dialog><dialog id="ds"></dialog><dialog id="dup"></dialog><dialog id="da"></dialog>
+<dialog id="dv"></dialog><dialog id="df"></dialog><dialog id="db"></dialog><dialog id="dz"></dialog><dialog id="dn"></dialog><dialog id="ds"></dialog><dialog id="dup"></dialog><dialog id="da"></dialog><dialog id="dtn"></dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="seed" type="application/json">{"t":0,"people":[],"upd":"https://script.google.com/macros/s/AKfycbzlkuuHlzFe7Zuq4-E5CFqjktqrmpaydT8cVZCdQPHyO4I-JQ_mYOVjejFQeudy_K-I/exec"}</script>
 <script>(async()=>{
@@ -557,6 +557,19 @@ async function restoreCompleteBackup(event){
  finally{if(btn){btn.disabled=false;btn.textContent=original}}
 }
 
+function openFuneralNoticeDraft(){
+ const d=$('#dtn'),dead=people.filter(p=>p.death),saved=(()=>{try{return JSON.parse(localStorage.getItem(KEY+'-funeral-draft')||'{}')}catch(e){return {}}})();
+ const opts=dead.map(p=>'<option value="'+esc(p.id)+'" '+(saved.memberId===p.id?'selected':'')+'>'+esc(dn(p))+' · '+esc(yrs(p))+'</option>').join('');
+ d.innerHTML='<div class="nf"><h2 style="color:#b91c1c">Soạn thông báo tang sự</h2><p class="sub">Chỉ tạo bản nháp. Chưa có thao tác phát hành hoặc gửi thông báo.</p><label class="w">Thành viên đã qua đời<select id="fn-member"><option value="">-- Chọn thành viên --</option>'+opts+'</select></label><label class="w">Nội dung<textarea id="fn-text" rows="5" maxlength="3000" placeholder="Nhập nội dung thông báo...">'+esc(saved.text||'')+'</textarea></label><div class="grid"><label>Ngày tang lễ<input id="fn-date" type="date" value="'+esc(saved.date||'')+'"></label><label>Giờ<input id="fn-time" type="time" value="'+esc(saved.time||'')+'"></label><label class="w">Địa điểm<input id="fn-location" maxlength="300" value="'+esc(saved.location||'')+'" placeholder="Địa điểm tổ chức tang lễ"></label></div><p class="err" id="fn-error" role="alert"></p><div class="bar"><button class="pri" id="fn-save">Lưu bản nháp</button><button id="fn-cancel">Đóng</button></div><p class="hint">Bản nháp được lưu trên trình duyệt hiện tại. Nút này không phát hành, không gửi tin, không thay đổi hồ sơ thành viên.</p></div>';
+ d.querySelector('#fn-cancel').onclick=()=>d.close();
+ d.querySelector('#fn-save').onclick=()=>{
+  const memberId=d.querySelector('#fn-member').value,text=d.querySelector('#fn-text').value.trim(),date=d.querySelector('#fn-date').value,time=d.querySelector('#fn-time').value,location=d.querySelector('#fn-location').value.trim(),err=d.querySelector('#fn-error');
+  if(!memberId){err.textContent='Hãy chọn thành viên đã qua đời.';return}
+  if(!text){err.textContent='Hãy nhập nội dung bản nháp.';return}
+  try{localStorage.setItem(KEY+'-funeral-draft',JSON.stringify({memberId,text,date,time,location,updatedAt:Date.now()}));err.textContent='';toast('Đã lưu bản nháp thông báo tang sự (chưa phát hành).')}catch(e){err.textContent='Không lưu được bản nháp trong trình duyệt.'}
+ };
+ if(!d.open)d.showModal();
+}
 function adminView(){
  const total=people.length,living=people.filter(p=>!p.death).length,departed=total-living,generations=total?Math.max(...people.map(p=>gen(p))):0,roots=people.filter(isRoot).length,missingBirth=people.filter(p=>!p.birth).length;
  const stat=(icon,label,value,detail)=>'<article class="admin-stat"><span class="admin-stat-icon">'+icon+'</span><div><small>'+label+'</small><strong>'+value.toLocaleString('vi-VN')+'</strong><span>'+detail+'</span></div></article>';
@@ -571,7 +584,7 @@ function adminView(){
   '<section class="admin-insight"><div><b>Thông tin dữ liệu</b><p>'+roots.toLocaleString('vi-VN')+' hồ sơ được xác định là điểm đầu của nhánh gia phả · '+missingBirth.toLocaleString('vi-VN')+' hồ sơ chưa ghi ngày sinh.</p></div><button class="admin-action" data-home-v="list">Mở danh sách thành viên</button></section>'+
   '<div class="admin-grid">'+
    '<section class="admin-card"><span class="admin-card-icon">✚</span><div><h3>Quản lý thành viên</h3><p>Tra cứu, xem hồ sơ, chỉnh sửa thông tin hoặc bổ sung thành viên vào gia phả.</p><div class="bar"><button class="admin-action" data-home-v="list">Danh sách thành viên</button><button class="pri" data-admin-trigger="add">Thêm người</button></div></div></section>'+
-   '<section class="admin-card"><span class="admin-card-icon">☁</span><div><h3>Sao lưu lên đám mây</h3><p>Tạo bản sao lưu và đồng bộ dữ liệu theo cơ chế hiện có.</p><button class="pri" data-admin-trigger="cloud-backup">Sao lưu lên đám mây</button></div></section>'+
+   '<section class="admin-card" style="border-color:color-mix(in srgb,#dc2626 45%,var(--line))"><span class="admin-card-icon" style="color:#dc2626">✝</span><div><h3>Thông báo tang sự</h3><p>Soạn bản nháp thông báo khi có thành viên qua đời. Chưa phát hành hay gửi cho bất kỳ ai.</p><button class="admin-action" data-funeral-notice>Soạn thông báo tang sự</button></div></section><section class="admin-card"><span class="admin-card-icon">☁</span><div><h3>Sao lưu lên đám mây</h3><p>Tạo bản sao lưu và đồng bộ dữ liệu theo cơ chế hiện có.</p><button class="pri" data-admin-trigger="cloud-backup">Sao lưu lên đám mây</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">💾</span><div><h3>Sao lưu dữ liệu và tệp</h3><p>Lưu dữ liệu gia phả, thiết lập, kho tư liệu và các tệp đính kèm vào một tệp. Bản sao có chứa thông tin riêng tư.</p><button class="pri" data-admin-trigger="db-export">Tạo bản sao lưu</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">↻</span><div><h3>Khôi phục bản sao đầy đủ</h3><p>Khôi phục dữ liệu và tệp từ bản sao của đúng dự án này. Dữ liệu ngoài bản sao sẽ được giữ nguyên.</p><button class="admin-action" data-admin-trigger="db-restore">Chọn tệp khôi phục</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">↥</span><div><h3>Khôi phục từ tệp</h3><p>Nạp dữ liệu gia phả từ tệp sao lưu JSON đã có.</p><button class="admin-action" data-admin-trigger="ld">Chọn tệp khôi phục</button></div></section>'+
@@ -1046,7 +1059,7 @@ function openUpd(){const d=$('#dup');
  g('d').onclick=()=>{upd='';g('u').value='';try{localStorage.setItem(KEY+'-upd','')}catch(e){}save();m('Đã tắt. Bản xem trên thiết bị khác xuất từ lần sau sẽ không tự cập nhật.')};
  g('x').onclick=()=>d.close();d.showModal()}
 $('#upn').onclick=()=>updCheck(true);$('#db-export').onclick=exportDatabaseBackup;$('#db-restore').onclick=()=>$('#db-restore-file').click();$('#db-restore-file').onchange=restoreCompleteBackup;
-$('#main').onclick=$('#bn').onclick=e=>{const a=e.target.closest('[data-admin-trigger]');if(a){const target=$('#'+a.dataset.adminTrigger);if(target)target.click();return}const n=e.target.closest('[data-home-v]');if(n){view=n.dataset.homeV;$('#q').value='';q='';if(view==='tree'){fp=null;treeScope='all'}render(1);return}const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
+$('#main').onclick=$('#bn').onclick=e=>{const fn=e.target.closest('[data-funeral-notice]');if(fn){openFuneralNoticeDraft();return}const a=e.target.closest('[data-admin-trigger]');if(a){const target=$('#'+a.dataset.adminTrigger);if(target)target.click();return}const n=e.target.closest('[data-home-v]');if(n){view=n.dataset.homeV;$('#q').value='';q='';if(view==='tree'){fp=null;treeScope='all'}render(1);return}const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
 $('#q').oninput=e=>{q=e.target.value.trim();render()};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{view=b.dataset.v;$('#q').value='';q='';if(view==='tree'){fp=null;treeScope='all'}render(1)});
 $('#add').onclick=()=>openForm();
