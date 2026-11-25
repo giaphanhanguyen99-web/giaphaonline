@@ -459,7 +459,7 @@ function homeView(){
 async function loadPublishedFuneralNotices(container){
  if(!SB||!container)return;
  const dashboard=container.querySelector('.home-dashboard');if(!dashboard)return;
- const {data,error}=await SB.from('family_funeral_notices').select('id,deceased_name,death_date,death_time,message,funeral_date,funeral_time,funeral_location,published_at').eq('status','published').order('published_at',{ascending:false}).limit(100);
+ const {data,error}=await SB.from('family_funeral_notices').select('id,deceased_name,death_date,death_time,message,funeral_date,funeral_time,funeral_location,published_at').eq('status','published').order('published_at',{ascending:false});
  if(error){console.warn('Không tải được thông báo tang sự:',error.message);return}
  if(!data||!data.length)return;
  if(container.querySelector('.funeral-notices-home'))return;
