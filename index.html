@@ -1096,12 +1096,23 @@ function openForm(pre={},id=null){const p=id?by(id):pre,d=$('#df'),v=k=>esc(p[k]
  <label class="w">Ngày giỗ âm lịch (DD/MM)<input id="f-gio" value="${v('gio')}" placeholder="Tự tính từ ngày mất. Chỉ nhập nếu bạn biết ngày âm lịch khác, ví dụ 15/07" inputmode="decimal" autocomplete="off"></label>
  <label>Nơi sinh<input id="f-place" value="${v('place')}"></label>
  <label>Quê quán<input id="f-home" value="${v('home')}"></label>
- <label>Cha<select id="f-fatherId">${opts(p.fatherId)}</select></label>
- <label>Mẹ<select id="f-motherId">${opts(p.motherId)}</select></label>
+ <div class="pr"><label>Cha<input id="f-father-name" value="${esc(by(p.fatherId)?.name||'')}" autocomplete="off" placeholder="Gõ tên cha để tìm"><input type="hidden" id="f-fatherId" value="${esc(p.fatherId||'')}"><span class="sug" id="f-father-sug" hidden></span></label></div>
+ <div class="pr"><label>Mẹ<input id="f-mother-name" value="${esc(by(p.motherId)?.name||'')}" autocomplete="off" placeholder="Gõ tên mẹ để tìm"><input type="hidden" id="f-motherId" value="${esc(p.motherId||'')}"><span class="sug" id="f-mother-sug" hidden></span></label></div>
  <label class="w">Vợ/chồng<select id="f-spouseId">${opts(p.spouseId)}</select></label>
  <label class="w">Ghi chú<textarea id="f-note" style="min-height:80px;font-size:1rem">${v('note')}</textarea></label></div>
  <p class="err" id="f-err" role="alert"></p><div class="bar"><button class="pri" id="f-save">Lưu</button><button id="f-cancel">Hủy</button></div>`;
  $('#f-cancel').onclick=()=>d.close();
+ const parentSetup=(role)=>{
+  const nameEl=$('#f-'+role+'-name'),idEl=$('#f-'+role+'Id'),sugEl=$('#f-'+role+'-sug');let active=-1;
+  const hide=()=>sugEl.hidden=true;
+  const candidates=()=>people.filter(x=>x.id!==id&&(!x.gender||x.gender===(role==='father'?'nam':'nu'))&&norm(x.name).includes(norm(nameEl.value).trim())).slice(0,12);
+  const renderSug=()=>{if(!norm(nameEl.value).trim()){hide();return}const list=candidates();active=-1;if(!list.length){hide();return}sugEl.innerHTML=list.map(x=>'<button type="button" data-id="'+esc(x.id)+'"><b>'+esc(dn(x))+'</b><i>'+esc([x.birth,x.home].filter(Boolean).join(' · '))+'</i></button>').join('');sugEl.hidden=false};
+  const choose=x=>{if(!x)return;nameEl.value=x.name;idEl.value=x.id;hide();if(role==='father'){const partner=by(x.spouseId);if(partner&&partner.gender==='nu'){$('#f-mother-name').value=partner.name;$('#f-motherId').value=partner.id;$('#f-mother-sug').hidden=true;}}};
+  nameEl.oninput=()=>{idEl.value='';if(role==='father'){$('#f-mother-name').value='';$('#f-motherId').value='';$('#f-mother-sug').hidden=true;}renderSug()};nameEl.onfocus=renderSug;
+  sugEl.onclick=e=>{const b=e.target.closest('button');if(b)choose(by(b.dataset.id))};
+  nameEl.onkeydown=e=>{const bs=[...sugEl.querySelectorAll('button')];if(sugEl.hidden)return;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!bs.length)return;active=(active+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach((b,i)=>b.classList.toggle('on',i===active));bs[active].scrollIntoView({block:'nearest'})}else if(e.key==='Enter'&&active>=0){e.preventDefault();bs[active].click()}else if(e.key==='Escape')hide()};
+ };parentSetup('father');parentSetup('mother');
+ d.addEventListener('pointerdown',e=>{if(!e.target.closest('#f-father-name')&&!e.target.closest('#f-father-sug'))$('#f-father-sug').hidden=true;if(!e.target.closest('#f-mother-name')&&!e.target.closest('#f-mother-sug'))$('#f-mother-sug').hidden=true});
  const relV=()=>{const s=$('#f-relsel').value;return s==='__x'?$('#f-relx').value.trim():s};
  const catV=()=>isCath({rel:relV()});
  const closeSug=()=>{const s=$('#f-sug');if(s)s.hidden=true};
