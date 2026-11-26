@@ -28,6 +28,19 @@ DROP POLICY IF EXISTS "Admin can insert archive files" ON public.family_archive_
 DROP POLICY IF EXISTS "Admin can update archive files" ON public.family_archive_files;
 DROP POLICY IF EXISTS "Admin can delete archive files" ON public.family_archive_files;
 
+-- Make this migration safely re-runnable.
+DROP POLICY IF EXISTS family_archives_public_read ON public.family_archives;
+DROP POLICY IF EXISTS family_archives_active_read_private ON public.family_archives;
+DROP POLICY IF EXISTS family_archives_editor_admin_insert ON public.family_archives;
+DROP POLICY IF EXISTS family_archives_editor_admin_update ON public.family_archives;
+DROP POLICY IF EXISTS family_archives_admin_delete ON public.family_archives;
+
+DROP POLICY IF EXISTS family_archive_files_public_read ON public.family_archive_files;
+DROP POLICY IF EXISTS family_archive_files_active_read_private ON public.family_archive_files;
+DROP POLICY IF EXISTS family_archive_files_editor_admin_insert ON public.family_archive_files;
+DROP POLICY IF EXISTS family_archive_files_editor_admin_update ON public.family_archive_files;
+DROP POLICY IF EXISTS family_archive_files_admin_delete ON public.family_archive_files;
+
 -- Public visitors may read only public archive rows.
 CREATE POLICY family_archives_public_read
 ON public.family_archives
