@@ -1503,7 +1503,8 @@ function openForm(pre={},id=null){if(id?!familyCan('member_update'):!familyCan('
      const {data:verified,error:verifyError}=await SB.from('family_members').select('id,data').in('id',ids);
      if(verifyError)throw verifyError;
      const verifiedMap=new Map((verified||[]).map(row=>[String(row.id),row.data]));
-     for(const person of changed){const cloud=verifiedMap.get(String(person.id));if(!cloud||JSON.stringify(cloud)!==JSON.stringify(person))throw new Error('Cloud chưa xác nhận đầy đủ hồ sơ '+(person.name||person.id)+'.')}
+     const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.keys(v).sort().reduce((o,k)=>{if(v[k]!==undefined)o[k]=stable(v[k]);return o},{}):v;
+     for(const person of changed){const cloud=verifiedMap.get(String(person.id));if(!cloud||JSON.stringify(stable(cloud))!==JSON.stringify(stable(person)))throw new Error('Cloud chưa xác nhận đầy đủ hồ sơ '+(person.name||person.id)+'.')}
     }
    }catch(err){
     people=snapshot;
