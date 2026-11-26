@@ -1481,7 +1481,7 @@ function openForm(pre={},id=null){if(id?!familyCan('member_update'):!familyCan('
   if(!relV()){$('#f-err').textContent='Nhập tên tôn giáo.';$('#f-relx').focus();return}
   if(catV()&&g('sday')&&!sdp(g('sday'))){$('#f-err').textContent='Nhập ngày lễ bổn mạng dạng DD/MM, ví dụ 19/03.';$('#f-sday').focus();return}
   if(g('gio')&&!sdp(g('gio'),1)){$('#f-err').textContent='Nhập ngày giỗ âm lịch dạng DD/MM, ví dụ 15/07.';$('#f-gio').focus();return}
-  const oldPerson=id?by(id):null,o={id:id||'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)};
+  const snapshot=JSON.parse(JSON.stringify(people)),oldPerson=id?by(id):null,o={id:id||'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)};
   ['name','gender','job','birth','death','gio','place','home','note','fatherId','motherId','spouseId'].forEach(k=>{if(g(k))o[k]=g(k)});
   o.rel=relV();if(catV()){if(g('saint'))o.saint=g('saint');if(g('sday'))o.saintDay=g('sday')}
   btn.disabled=true;btn.textContent='Đang lưu…';
@@ -1496,11 +1496,18 @@ function openForm(pre={},id=null){if(id?!familyCan('member_update'):!familyCan('
   if(o.spouseId){const x=by(o.spouseId);if(x){if(x.spouseId&&x.spouseId!==o.id){const y=by(x.spouseId);if(y&&y.spouseId===x.id)delete y.spouseId}x.spouseId=o.id}}
   if(OWN&&SB&&SBUSER&&SBUSER.id!==ADMIN_UID){
    try{
-    const affected=[o,...(o.spouseId&&by(o.spouseId)?[by(o.spouseId)]:[])];
-    for(const person of affected)await persistSingleMemberToSupabase(person);
+    const changed=people.filter(person=>{const before=snapshot.find(x=>x.id===person.id);return !before||JSON.stringify(before)!==JSON.stringify(person)});
+    for(const person of changed)await persistSingleMemberToSupabase(person);
+    const ids=changed.map(person=>String(person.id));
+    if(ids.length){
+     const {data:verified,error:verifyError}=await SB.from('family_members').select('id,data').in('id',ids);
+     if(verifyError)throw verifyError;
+     const verifiedMap=new Map((verified||[]).map(row=>[String(row.id),row.data]));
+     for(const person of changed){const cloud=verifiedMap.get(String(person.id));if(!cloud||JSON.stringify(cloud)!==JSON.stringify(person))throw new Error('Cloud chưa xác nhận đầy đủ hồ sơ '+(person.name||person.id)+'.')}
+    }
    }catch(err){
-    if(oldPerson){people=people.map(x=>x.id===oldPerson.id?oldPerson:x)}else people=people.filter(x=>x.id!==o.id);
-    btn.disabled=false;btn.textContent='Lưu';$('#f-err').textContent='Không lưu được lên cơ sở dữ liệu: '+(err.message||err);return;
+    people=snapshot;
+    btn.disabled=false;btn.textContent='Lưu';$('#f-err').textContent='Không lưu được lên cơ sở dữ liệu; dữ liệu trong phiên đã được khôi phục: '+(err.message||err);return;
    }
   }
   save();d.close();render();openView(o.id)};
