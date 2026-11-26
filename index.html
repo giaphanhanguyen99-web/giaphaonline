@@ -791,7 +791,7 @@ $('#ph').onclick=e=>{if(e.target.closest('[data-print]')){try{window.print()}cat
 $('#dz').onclick=()=>$('#dz').close();
 const toast=m=>{const e=$('#toast');e.textContent=m;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{e.hidden=true},7000)};
 syncAuthButtons();
-if(SBUSER&&SBUSER.id===ADMIN_UID)$('#auth-status').textContent='Đã đăng nhập Root Admin';else if(SBUSER)$('#auth-status').textContent='Đã đăng nhập · '+({member:'Thành viên',editor:'Biên tập viên',admin:'Quản trị viên'}[FAMILY_ROLE]||'chưa được cấp quyền');else $('#auth-status').textContent='Chế độ xem công khai';
+function familyAccountStatusLabel(){const roleLabels={visitor:'Khách',member:'Thành viên',editor:'Biên tập viên',admin:'Quản trị viên',root_admin:'Root Admin'};const statusLabels={active:'đã kích hoạt',pending:'chờ cấp quyền',suspended:'đã tạm khóa',revoked:'đã thu hồi'};const role=roleLabels[FAMILY_ROLE]||'Khách';const status=statusLabels[FAMILY_STATUS]||'chưa xác định trạng thái';return role+' · '+status;}if(SBUSER&&SBUSER.id===ADMIN_UID)$('#auth-status').textContent='Đã đăng nhập · Root Admin · toàn quyền';else if(SBUSER)$('#auth-status').textContent='Đã đăng nhập · '+familyAccountStatusLabel();else $('#auth-status').textContent='Chế độ xem công khai · Khách';
 $('#register-open').onclick=()=>{$('#register-preview').hidden=true;$('#register-form').hidden=false;$('#register-dialog').showModal()};
 $('#register-cancel').onclick=()=>$('#register-dialog').close();
 $('#register-reset').onclick=()=>{$('#register-preview').hidden=true;$('#register-form').hidden=false};
