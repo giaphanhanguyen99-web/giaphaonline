@@ -17,12 +17,12 @@
 - [x] Navigation: dashboard, tree, members, notifications, archive, saints, admin
 - [x] Responsive breakpoints cơ bản
 - [ ] User test UI/navigation on desktop and mobile
-- [ ] Review visual design and accessibility
+- [x] Add a prototype rule demo for sibling ordering (age-based left-to-right, manual override, restore automatic)\n- [ ] Review visual design and accessibility
 
 ## 2 — Member data and genealogy
 - [ ] Database model, member CRUD
 - [ ] Family relationship model
-- [ ] Tree navigation/layout (vertical and horizontal)
+- [ ] Tree navigation/layout (vertical and horizontal)\n- [x] Define sibling display rule: oldest-to-youngest, left-to-right by default\n- [x] Prototype manual ordering override and restore automatic sorting (mock only)\n- [ ] Implement persisted sibling order, including missing-date handling and equal-date tie-breaker
 - [ ] Search/autocomplete and profile details
 - [ ] Age/date conventions and anniversaries
 
