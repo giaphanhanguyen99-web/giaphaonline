@@ -130,6 +130,11 @@ USING (
   OR (
     public.family_current_status() = 'active'
     AND public.family_current_role() IN ('member', 'editor', 'admin')
+    AND EXISTS (
+      SELECT 1
+      FROM public.family_archives a
+      WHERE a.id = family_archive_files.archive_id
+    )
   )
 );
 
