@@ -342,8 +342,8 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 <label class="w">Họ và tên đầy đủ<input id="register-name" autocomplete="name" required maxlength="150" placeholder="Nguyễn Văn ..."></label>
 <label class="w">Số điện thoại<input id="register-phone" type="tel" autocomplete="tel" required maxlength="30" placeholder="09xxxxxxxx"></label>
 </div><p id="register-error" class="err" role="alert"></p><div class="bar"><button class="pri" type="submit">Tạo phiếu xem trước</button><button type="button" id="register-cancel">Đóng</button></div></form>
-<section id="register-preview" hidden><h3>Phiếu đăng ký xem trước</h3><dl><dt>Email</dt><dd id="preview-email"></dd><dt>Họ tên</dt><dd id="preview-name"></dd><dt>Số điện thoại</dt><dd id="preview-phone"></dd><dt>Trạng thái</dt><dd>Chờ Root Admin xét duyệt</dd></dl><p class="sub">Bước giao diện: phiếu chưa được gửi đến Root hoặc lưu vào hệ thống.</p><button type="button" id="register-reset">Chỉnh sửa thông tin</button></section>
-</dialog><
+<section id="register-preview" hidden><h3>Phiếu đăng ký xem trước</h3><dl><dt>Email</dt><dd id="preview-email"></dd><dt>Họ tên</dt><dd id="preview-name"></dd><dt>Số điện thoại</dt><dd id="preview-phone"></dd><dt>Trạng thái</dt><dd>Chờ Root Admin xét duyệt</dd></dl><p class="sub">Bước giao diện: phiếu chưa được gửi đến Root hoặc lưu vào hệ thống.</p><div class="bar"><button type="button" id="register-reset">Chỉnh sửa thông tin</button><button type="button" id="register-close-preview">Đóng và tiếp tục duyệt web</button></div></section>
+</dialog>
 <script>(async()=>{
 const SUPABASE_URL='https://jythsoipunwojlkqemdp.supabase.co',SUPABASE_KEY='sb_publishable_aHk_WQ8BFsFv5dSr6pmIwA_zyHe4_9X',ADMIN_UID='4f442010-a8ae-4339-9748-554ce5c281e7',PHOTO_BUCKET='gia-pha-photos',ARCHIVE_BUCKET='family-archives';
 let OWN=false,DB=null,SB=null,SBUSER=null;
@@ -795,6 +795,7 @@ if(SBUSER&&SBUSER.id===ADMIN_UID)$('#auth-status').textContent='Đã đăng nh�
 $('#register-open').onclick=()=>{$('#register-preview').hidden=true;$('#register-form').hidden=false;$('#register-dialog').showModal()};
 $('#register-cancel').onclick=()=>$('#register-dialog').close();
 $('#register-reset').onclick=()=>{$('#register-preview').hidden=true;$('#register-form').hidden=false};
+$('#register-close-preview').onclick=()=>$('#register-dialog').close();
 $('#register-form').onsubmit=e=>{e.preventDefault();const email=$('#register-email').value.trim(),name=$('#register-name').value.trim(),phone=$('#register-phone').value.trim();if(!email||!name||!phone){$('#register-error').textContent='Vui lòng điền đủ email, họ tên và số điện thoại.';return}$('#register-error').textContent='';$('#preview-email').textContent=email;$('#preview-name').textContent=name;$('#preview-phone').textContent=phone;$('#register-form').hidden=true;$('#register-preview').hidden=false};
 $('#auth-login').onclick=async()=>{if(SBUSER)return;if(location.protocol==='file:'){toast('Cần đưa website lên một địa chỉ HTTPS trước khi đăng nhập Google. Ta sẽ cấu hình địa chỉ này ở bước triển khai website.');return}if(!SB){toast('Không tải được thư viện kết nối Supabase. Hãy kiểm tra kết nối Internet rồi tải lại trang.');return}const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)toast('Không đăng nhập được: '+error.message)};
 $('#auth-logout').onclick=async()=>{if(!SBUSER)return;if(SB){const {error}=await SB.auth.signOut();if(error){toast('Không đăng xuất được: '+error.message);return}}location.reload()};
