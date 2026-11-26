@@ -480,12 +480,14 @@ async function persistSupabaseMembers(){
  const keep=new Set(rows.map(r=>r.id)),gone=(existing||[]).map(r=>r.id).filter(id=>!keep.has(id));
  if(gone.length){const {error}=await SB.from('family_members').delete().in('id',gone);if(error)throw error}
  if(saintsCloudLoaded){
-  const {data:oldSaints,error:oldSaintsError}=await SB.from('family_saints').select('id');
+  const {data:oldSaints,error:oldSaintsError}=await SB.from('family_saints').select('id,name,feast_day').eq('is_active',true);
   if(oldSaintsError)throw oldSaintsError;
-  const oldIds=(oldSaints||[]).map(x=>x.id).filter(Boolean);
-  if(oldIds.length){const {error}=await SB.from('family_saints').update({is_active:false,updated_at:new Date().toISOString()}).in('id',oldIds);if(error)throw error}
   const saintRows=(SL()||[]).filter(x=>x&&x[0]).map((x,i)=>({name:String(x[0]),feast_day:String(x[1]||''),description:String(x[2]||''),sort_order:i+1,is_active:true,updated_at:new Date().toISOString()})).filter(x=>/^\d{2}\/\d{2}$/.test(x.feast_day));
+  // Upsert desired rows before deactivating obsolete ones, so RLS visibility is not lost during conflict handling.
   if(saintRows.length){const {error}=await SB.from('family_saints').upsert(saintRows,{onConflict:'name,feast_day'});if(error)throw error}
+  const keepSaintKeys=new Set(saintRows.map(x=>x.name+'|'+x.feast_day));
+  const obsoleteSaintIds=(oldSaints||[]).filter(x=>!keepSaintKeys.has(String(x.name||'')+'|'+String(x.feast_day||''))).map(x=>x.id).filter(Boolean);
+  if(obsoleteSaintIds.length){const {error}=await SB.from('family_saints').update({is_active:false,updated_at:new Date().toISOString()}).in('id',obsoleteSaintIds);if(error)throw error}
  }
  const settingsData={notice:hasN(notice)?notice:null,upd};
  const {error:settingsError}=await SB.from('family_settings').upsert({id:'main',data:settingsData,updated_at:new Date().toISOString()},{onConflict:'id'});
