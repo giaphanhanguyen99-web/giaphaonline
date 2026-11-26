@@ -16,6 +16,14 @@ Branch: `gia-pha-development-2026-11-25`
 
 - [ ] Verify the Development preview and complete Google Auth → request → Root review flow with a safe test account and test request. The connected project has no separate Supabase Development branch, and the user declined creating one, so avoid using a real family member's account or request for testing.
 
+## Root account permission management
+
+- [x] Added a Root-only account management card to Quản trị gia phả and a dialog listing accounts that already have permission records.
+- [x] Root can raise/lower roles (member, editor, admin) and change account status (pending, active, suspended, revoked).
+- [x] Sensitive actions show a confirmation; active access cannot be granted while the Auth email is unverified.
+- [x] Added fixed-search-path, Root-guarded RPCs for listing and updating permissions. Updates compare the expected old role/status to prevent overwriting a concurrent change.
+- [x] Applied Supabase migration root_account_permission_management (version 20261126091855). It creates/replaces functions and grants only; it changes no tables or rows.
+
 ## Environment and safety notes
 
 - Live metadata confirmed the request status constraint (`pending`, `approved`, `rejected`), RLS enabled, Root SELECT on registration requests, and Root ALL on `family_user_permissions`.
