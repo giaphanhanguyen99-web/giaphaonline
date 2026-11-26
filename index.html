@@ -320,6 +320,7 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 
 
 .tree-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.tree-nav button{min-width:42px;padding:7px 11px}.tree-nav .tn-label{font-size:.86rem;color:var(--muted);margin-right:auto}.tree-nav .tn-zoom{font-variant-numeric:tabular-nums;min-width:54px;text-align:center}@media(max-width:560px){.tree-nav{gap:6px}.tree-nav button{flex:1 1 auto}.tree-nav .tn-label{flex:1 1 100%}}
+.account-permissions-list{display:grid;gap:12px;margin:14px 0}.account-permission-card{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}.account-permission-card h3{margin:0 0 4px;overflow-wrap:anywhere}.account-permission-meta{margin:0 0 12px;color:var(--muted);font-size:.84rem}.account-permission-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.account-permission-fields label{display:grid;gap:5px;color:var(--muted);font-size:.86rem}.account-permission-fields select{background:var(--surface)}.account-permission-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}.account-permission-actions .sub{margin:0;flex:1}.account-permission-empty{padding:18px;border:1px dashed var(--line);border-radius:10px;color:var(--muted)}@media(max-width:600px){.account-permission-fields{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -347,6 +348,13 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 <dialog id="registration-review-dialog" style="max-width:900px;width:calc(100% - 32px);border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:24px">
 <h2>Duyệt phiếu đăng ký</h2><p id="registration-review-status" class="sub" role="status"></p><div id="registration-review-list" class="grid"></div>
 <div class="bar"><button id="registration-review-refresh" type="button">Tải lại danh sách</button><button id="registration-review-close" type="button">Đóng</button></div>
+</dialog>
+<dialog id="account-permissions-dialog" style="max-width:960px;width:calc(100% - 32px);border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:24px">
+ <h2>Quản lý cấp tài khoản</h2>
+ <p class="sub">Chỉ Root Admin được xem và thay đổi quyền. Tài khoản Root Admin được bảo vệ riêng.</p>
+ <p id="account-permissions-status" class="sub" role="status"></p>
+ <div id="account-permissions-list" class="account-permissions-list"></div>
+ <div class="bar"><button id="account-permissions-refresh" type="button">Tải lại</button><button id="account-permissions-close" type="button">Đóng</button></div>
 </dialog>
 <script>(async()=>{
 const SUPABASE_URL='https://jythsoipunwojlkqemdp.supabase.co',SUPABASE_KEY='sb_publishable_aHk_WQ8BFsFv5dSr6pmIwA_zyHe4_9X',ADMIN_UID='4f442010-a8ae-4339-9748-554ce5c281e7',PHOTO_BUCKET='gia-pha-photos',ARCHIVE_BUCKET='family-archives';
@@ -721,6 +729,80 @@ function openFuneralNoticeDraft(){
   d.querySelector('#fn-confirm').onclick=async()=>{const phrase=d.querySelector('#fn-phrase').value.trim();if(phrase!=='XÁC NHẬN THÔNG BÁO '+dn(p).toUpperCase()){d.querySelector('#fn-error').textContent='Cụm xác nhận chưa chính xác. Hãy nhập đúng nội dung hiển thị.';return}const btn=d.querySelector('#fn-confirm');if(!SB||!SBUSER||SBUSER.id!==ADMIN_UID){d.querySelector('#fn-error').textContent='Cần đăng nhập bằng tài khoản quản trị để phát hành thông báo.';return}btn.disabled=true;btn.textContent='Đang phát hành…';try{const {data:existing,error:checkError}=await SB.from('family_funeral_notices').select('id').eq('member_id',String(p.id)).eq('status','published').limit(1);if(checkError)throw checkError;if(existing&&existing.length){d.querySelector('#fn-error').textContent='Hồ sơ này đã có thông báo tang sự đang hoạt động. Không phát hành trùng.';btn.disabled=false;btn.textContent='Hoàn tất xác nhận và phát hành';return}const payload={member_id:String(p.id),priority:v.priority||'urgent',deceased_name:dn(p),death_date:v.deathDate||null,death_time:v.deathTime||null,message:v.text,funeral_date:v.date||null,funeral_time:v.time||null,funeral_location:v.location||null,status:'published',confirmed_at:new Date().toISOString(),confirmed_by:SBUSER.id,published_by:SBUSER.id};const {error}=await SB.from('family_funeral_notices').insert(payload);if(error)throw error;localStorage.setItem(KEY+'-funeral-draft',JSON.stringify({...v,confirmedAt:Date.now(),confirmedPerson:p.id,publishedAt:Date.now()}));d.innerHTML='<div class="nf"><h2 style="color:#b91c1c">Đã phát hành thông báo</h2><p>Thông báo tang sự đã được ghi nhận trên hệ thống gia đình.</p><p><b>'+esc(dn(p))+'</b></p><p>Thông báo đã được lưu vào cơ sở dữ liệu.</p><p class="hint">Lịch tang lễ có thể cập nhật sau khi gia đình thống nhất.</p><button id="fn-close">Đóng</button></div>';d.querySelector('#fn-close').onclick=()=>d.close()}catch(e){console.error('Funeral notice publish:',e);d.querySelector('#fn-error').textContent='Phát hành thất bại: '+(e.message||'Không thể ghi dữ liệu').toString();btn.disabled=false;btn.textContent='Thử phát hành lại'}};
  }
 }
+const ACCOUNT_ROLE_LABELS={member:'Thành viên',editor:'Biên tập viên',admin:'Quản trị viên'};
+const ACCOUNT_STATUS_LABELS={pending:'Chờ cấp quyền',active:'Đang hoạt động',suspended:'Tạm khóa',revoked:'Đã thu hồi'};
+const ACCOUNT_ROLE_HELP={member:'Xem nội dung dành cho thành viên.',editor:'Chỉnh sửa hồ sơ thành viên và tư liệu; không có quyền xóa.',admin:'Có quyền xóa hồ sơ, xóa tư liệu và quản lý thông báo.'};
+function accountPermissionError(error){
+ const raw=String(error?.message||error||'');
+ if(raw.includes('ROOT_ONLY'))return 'Chỉ Root Admin mới được quản lý cấp tài khoản.';
+ if(raw.includes('ACCOUNT_CHANGED_REFRESH'))return 'Quyền tài khoản vừa thay đổi. Hãy tải lại danh sách rồi thử lại.';
+ if(raw.includes('EMAIL_UNVERIFIED'))return 'Email của tài khoản chưa được xác minh nên chưa thể kích hoạt quyền.';
+ if(raw.includes('PROTECTED_ACCOUNT'))return 'Tài khoản Root Admin được bảo vệ và không thể sửa tại đây.';
+ if(raw.includes('ACCOUNT_NOT_FOUND'))return 'Không tìm thấy tài khoản này.';
+ return 'Không xử lý được quyền tài khoản: '+raw;
+}
+async function loadAccountPermissions(successMessage=''){
+ const status=document.getElementById('account-permissions-status'),list=document.getElementById('account-permissions-list');
+ list.replaceChildren();
+ if(!SBUSER||SBUSER.id!==ADMIN_UID){status.textContent='Chỉ Root Admin mới được xem danh sách này.';return}
+ if(!SB){status.textContent='Không kết nối được Supabase.';return}
+ status.textContent='Đang tải tài khoản…';
+ try{
+  const {data,error}=await SB.rpc('root_list_family_account_permissions');
+  if(error)throw error;
+  const accounts=Array.isArray(data)?data:[];
+  if(!accounts.length){status.textContent=(successMessage?successMessage+' · ':'')+'Chưa có tài khoản nào được cấp quyền.';return}
+  status.textContent=(successMessage?successMessage+' · ':'')+'Có '+accounts.length+' tài khoản có quyền.';
+  for(const account of accounts){
+   const card=document.createElement('article');card.className='account-permission-card';
+   const title=document.createElement('h3');title.textContent=account.email||'Tài khoản không có email';card.append(title);
+   const meta=document.createElement('p');meta.className='account-permission-meta';
+   const created=account.created_at?new Date(account.created_at).toLocaleString('vi-VN'):'Không rõ thời điểm';
+   meta.textContent=(account.email_confirmed?'Email đã xác minh':'Email chưa xác minh')+' · Tạo quyền lúc '+created;card.append(meta);
+   const fields=document.createElement('div');fields.className='account-permission-fields';
+   const roleLabel=document.createElement('label');roleLabel.textContent='Cấp quyền';
+   const roleSelect=document.createElement('select');roleSelect.setAttribute('aria-label','Cấp quyền cho '+(account.email||'tài khoản'));
+   Object.entries(ACCOUNT_ROLE_LABELS).forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;roleSelect.append(option)});
+   roleSelect.value=ACCOUNT_ROLE_LABELS[account.role]?account.role:'member';roleLabel.append(roleSelect);
+   const statusLabel=document.createElement('label');statusLabel.textContent='Trạng thái tài khoản';
+   const statusSelect=document.createElement('select');statusSelect.setAttribute('aria-label','Trạng thái của '+(account.email||'tài khoản'));
+   Object.entries(ACCOUNT_STATUS_LABELS).forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;statusSelect.append(option)});
+   statusSelect.value=ACCOUNT_STATUS_LABELS[account.status]?account.status:'pending';statusLabel.append(statusSelect);
+   fields.append(roleLabel,statusLabel);card.append(fields);
+   const help=document.createElement('p');help.className='hint';help.textContent=ACCOUNT_ROLE_HELP[roleSelect.value]||'';card.append(help);
+   roleSelect.onchange=()=>{help.textContent=ACCOUNT_ROLE_HELP[roleSelect.value]||'';save.disabled=roleSelect.value===account.role&&statusSelect.value===account.status};
+   statusSelect.onchange=()=>{save.disabled=roleSelect.value===account.role&&statusSelect.value===account.status};
+   const actions=document.createElement('div');actions.className='account-permission-actions';
+   const save=document.createElement('button');save.type='button';save.className='pri';save.textContent='Lưu thay đổi';save.disabled=true;
+   const result=document.createElement('p');result.className='sub';result.setAttribute('role','status');
+   save.onclick=async()=>{
+    const nextRole=roleSelect.value,nextStatus=statusSelect.value;
+    if(!SBUSER||SBUSER.id!==ADMIN_UID){result.textContent='Chỉ Root Admin mới có thể đổi quyền.';return}
+    const warnings=[];
+    if(nextRole==='admin'&&account.role!=='admin')warnings.push('Cấp Quản trị viên sẽ cho phép tài khoản xóa hồ sơ và tư liệu, đồng thời quản lý thông báo.');
+    if(nextStatus!=='active'&&account.status==='active')warnings.push('Tài khoản sẽ mất quyền truy cập đang hoạt động.');
+    if(warnings.length&&!confirm(warnings.join('\n')+'\n\nBạn có muốn tiếp tục?'))return;
+    save.disabled=true;roleSelect.disabled=true;statusSelect.disabled=true;result.textContent='Đang lưu thay đổi…';
+    try{
+     const {error:saveError}=await SB.rpc('root_update_family_account_permission',{
+      p_user_id:account.user_id,p_role:nextRole,p_status:nextStatus,
+      p_expected_role:account.role,p_expected_status:account.status
+     });
+     if(saveError)throw saveError;
+     await loadAccountPermissions('Đã cập nhật quyền cho '+(account.email||'tài khoản')+'.');
+    }catch(error){result.textContent=accountPermissionError(error);roleSelect.disabled=false;statusSelect.disabled=false;save.disabled=false}
+   };
+   actions.append(save,result);card.append(actions);list.append(card);
+  }
+ }catch(error){status.textContent=accountPermissionError(error)}
+}
+async function openAccountPermissions(){
+ const dialog=document.getElementById('account-permissions-dialog');
+ if(!SBUSER||SBUSER.id!==ADMIN_UID){toast('Chỉ Root Admin mới được quản lý cấp tài khoản.');return}
+ dialog.showModal();await loadAccountPermissions();
+}
+document.getElementById('account-permissions-refresh').onclick=()=>loadAccountPermissions();
+document.getElementById('account-permissions-close').onclick=()=>document.getElementById('account-permissions-dialog').close();
 function adminView(){
  const total=people.length,living=people.filter(p=>!p.death).length,departed=total-living,generations=total?Math.max(...people.map(p=>gen(p))):0,roots=people.filter(isRoot).length,missingBirth=people.filter(p=>!p.birth).length;
  const stat=(icon,label,value,detail)=>'<article class="admin-stat"><span class="admin-stat-icon">'+icon+'</span><div><small>'+label+'</small><strong>'+value.toLocaleString('vi-VN')+'</strong><span>'+detail+'</span></div></article>';
@@ -734,7 +816,7 @@ function adminView(){
   '</section>'+
   '<section class="admin-insight"><div><b>Thông tin dữ liệu</b><p>'+roots.toLocaleString('vi-VN')+' hồ sơ được xác định là điểm đầu của nhánh gia phả · '+missingBirth.toLocaleString('vi-VN')+' hồ sơ chưa ghi ngày sinh.</p></div><button class="admin-action" data-home-v="list">Mở danh sách thành viên</button></section>'+
   '<div class="admin-grid">'+
-   '<section class="admin-card"><span class="admin-card-icon">✚</span><div><h3>Quản lý thành viên</h3><p>Tra cứu, xem hồ sơ, chỉnh sửa thông tin hoặc bổ sung thành viên vào gia phả.</p><div class="bar"><button class="admin-action" data-home-v="list">Danh sách thành viên</button><button class="pri" data-admin-trigger="add">Thêm người</button></div></div></section>'+
+   '+(SBUSER&&SBUSER.id===ADMIN_UID?'<section class="admin-card"><span class="admin-card-icon">♙</span><div><h3>Quản lý cấp tài khoản</h3><p>Tăng hoặc giảm vai trò, kích hoạt, tạm khóa hoặc thu hồi quyền tài khoản.</p><button class="admin-action" data-account-permissions>Quản lý tài khoản</button></div></section>':'')+\n   '<section class="admin-card"><span class="admin-card-icon">✚</span><div><h3>Quản lý thành viên</h3><p>Tra cứu, xem hồ sơ, chỉnh sửa thông tin hoặc bổ sung thành viên vào gia phả.</p><div class="bar"><button class="admin-action" data-home-v="list">Danh sách thành viên</button><button class="pri" data-admin-trigger="add">Thêm người</button></div></div></section>'+
    '<section class="admin-card" style="border-color:color-mix(in srgb,#dc2626 45%,var(--line))"><span class="admin-card-icon" style="color:#dc2626">✝</span><div><h3>Quản trị thông báo</h3><p>Soạn và phát hành thông báo theo cấp độ; theo dõi các thông báo đã gửi.</p><button class="admin-action" data-home-v="nt">Mở quản trị thông báo</button></div></section><section class="admin-card"><span class="admin-card-icon">☁</span><div><h3>Sao lưu lên đám mây</h3><p>Tạo bản sao lưu và đồng bộ dữ liệu theo cơ chế hiện có.</p><button class="pri" data-admin-trigger="cloud-backup">Sao lưu lên đám mây</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">💾</span><div><h3>Sao lưu dữ liệu và tệp</h3><p>Lưu dữ liệu gia phả, thiết lập, kho tư liệu và các tệp đính kèm vào một tệp. Bản sao có chứa thông tin riêng tư.</p><button class="pri" data-admin-trigger="db-export">Tạo bản sao lưu</button></div></section>'+
    '<section class="admin-card"><span class="admin-card-icon">↻</span><div><h3>Khôi phục bản sao đầy đủ</h3><p>Khôi phục dữ liệu và tệp từ bản sao của đúng dự án này. Dữ liệu ngoài bản sao sẽ được giữ nguyên.</p><button class="admin-action" data-admin-trigger="db-restore">Chọn tệp khôi phục</button></div></section>'+
@@ -1289,7 +1371,7 @@ function openUpd(){const d=$('#dup');
  g('d').onclick=()=>{upd='';g('u').value='';try{localStorage.setItem(KEY+'-upd','')}catch(e){}save();m('Đã tắt. Bản xem trên thiết bị khác xuất từ lần sau sẽ không tự cập nhật.')};
  g('x').onclick=()=>d.close();d.showModal()}
 $('#upn').onclick=()=>updCheck(true);$('#db-export').onclick=exportDatabaseBackup;$('#db-restore').onclick=()=>$('#db-restore-file').click();$('#db-restore-file').onchange=restoreCompleteBackup;
-$('#main').onclick=$('#bn').onclick=e=>{const fn=e.target.closest('[data-funeral-notice]');if(fn){openFuneralNoticeDraft();return}const a=e.target.closest('[data-admin-trigger]');if(a){const target=$('#'+a.dataset.adminTrigger);if(target)target.click();return}const n=e.target.closest('[data-home-v]');if(n){view=n.dataset.homeV;$('#q').value='';q='';if(view==='tree'){fp=null;treeScope='all'}render(1);return}const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
+$('#main').onclick=$('#bn').onclick=e=>{const pm=e.target.closest('[data-account-permissions]');if(pm){openAccountPermissions();return}const fn=e.target.closest('[data-funeral-notice]');if(fn){openFuneralNoticeDraft();return}const a=e.target.closest('[data-admin-trigger]');if(a){const target=$('#'+a.dataset.adminTrigger);if(target)target.click();return}const n=e.target.closest('[data-home-v]');if(n){view=n.dataset.homeV;$('#q').value='';q='';if(view==='tree'){fp=null;treeScope='all'}render(1);return}const b=e.target.closest('[data-id]');if(b)openView(b.dataset.id)};
 $('#q').oninput=e=>{q=e.target.value.trim();render()};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{view=b.dataset.v;$('#q').value='';q='';if(view==='tree'){fp=null;treeScope='all'}render(1)});
 $('#add').onclick=()=>openForm();
