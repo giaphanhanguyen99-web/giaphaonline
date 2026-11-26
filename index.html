@@ -1511,7 +1511,7 @@ function openForm(pre={},id=null){if(id?!familyCan('member_update'):!familyCan('
     btn.disabled=false;btn.textContent='Lưu';$('#f-err').textContent='Không lưu được lên cơ sở dữ liệu; dữ liệu trong phiên đã được khôi phục: '+(err.message||err);return;
    }
   }
-  save();d.close();render();openView(o.id)};
+  save();dirty=false;toast('Đã lưu và xác minh hồ sơ thành viên lên Supabase.');d.close();render();openView(o.id)};
  d.showModal();$('#f-name').focus();
 }
 $('#bak').onclick=()=>{const d=$('#db');
