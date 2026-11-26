@@ -1271,7 +1271,7 @@ function openForm(pre={},id=null){if(id?!familyCan('member_update'):!familyCan('
  <div class="pr"><label>Mẹ<input id="f-mother-name" value="${esc(by(p.motherId)?.name||'')}" autocomplete="off" placeholder="Gõ tên mẹ để tìm"><input type="hidden" id="f-motherId" value="${esc(p.motherId||'')}"><span class="sug" id="f-mother-sug" hidden></span></label></div>
  <label class="w">Vợ/chồng<select id="f-spouseId">${opts(p.spouseId)}</select></label>
  <label class="w">Ghi chú<textarea id="f-note" style="min-height:80px;font-size:1rem">${v('note')}</textarea></label></div>
- <p class="err" id="f-err" role="alert"></p><div class="bar"><button class="pri" id="f-save">Lưu</button><button id="f-cancel">Hủy</button></div>`;
+ ${!OWN?'<p class="hint" role="note">Bản thử nghiệm giao diện: thao tác hiện chưa đồng bộ lên Supabase. Chỉ dùng dữ liệu thử cho đến khi hoàn tất bước kết nối lưu dữ liệu.</p>':''}<p class="err" id="f-err" role="alert"></p><div class="bar"><button class="pri" id="f-save">Lưu</button><button id="f-cancel">Hủy</button></div>`;
  $('#f-cancel').onclick=()=>d.close();
  const parentSetup=(role)=>{
   const nameEl=$('#f-'+role+'-name'),idEl=$('#f-'+role+'Id'),sugEl=$('#f-'+role+'-sug');let active=-1;
@@ -1311,7 +1311,7 @@ function openForm(pre={},id=null){if(id?!familyCan('member_update'):!familyCan('
  dmask($('#f-birth'),3);dmask($('#f-death'),3);dmask($('#f-gio'),2);dmask($('#f-sday'),2);
  $('#f-file').onchange=e=>{const f=e.target.files[0];if(f){if(f.size>12*1024*1024){$('#f-err').textContent='Ảnh gốc quá lớn (trên 12 MB). Hãy chọn ảnh nhỏ hơn.';e.target.value='';return}resize(f,u=>{if(u){photo=u;$('#f-img').src=u;$('#f-img').hidden=false;$('#f-err').textContent=''}else $('#f-err').textContent='Không đọc được ảnh này. Thử ảnh JPG hoặc PNG.'})}};
  $('#f-rm').onclick=()=>{photo='';$('#f-img').hidden=true;$('#f-img').removeAttribute('src');$('#f-file').value=''};
- $('#f-save').onclick=async()=>{const btn=$('#f-save'),g=k=>$('#f-'+k).value.trim();
+ $('#f-save').onclick=async()=>{if(id?!familyCan('member_update'):!familyCan('member_create')){$('#f-err').textContent='Quyền thao tác đã thay đổi. Hãy đóng và mở lại biểu mẫu.';return}const btn=$('#f-save'),g=k=>$('#f-'+k).value.trim();
   ['birth','death','gio','sday'].forEach(k=>{const e=$('#f-'+k);if(e&&e._fin)e._fin()});
   if(!g('name')){$('#f-err').textContent='Nhập họ và tên để lưu.';$('#f-name').focus();return}
   for(const k of['birth','death'])if(g(k)&&!vd(g(k))){$('#f-err').textContent='Nhập ngày theo dạng DD/MM/YYYY (ví dụ 23/09/1993) hoặc chỉ năm (ví dụ 1950).';$('#f-'+k).focus();return}
