@@ -834,7 +834,7 @@ async function loadRegistrationRequests(){
    approve.onclick=()=>reviewRegistrationRequest(request.id,'approve');
    const reject=document.createElement('button');reject.type='button';reject.textContent='Từ chối';
    reject.onclick=()=>{if(confirm('Từ chối phiếu đăng ký của '+String(request.full_name||request.email||'người này')+'?'))reviewRegistrationRequest(request.id,'reject','member')};
-   controls.append(role,approve,reject);card.append(controls);list.append(card);
+   controls.append(approve,reject);card.append(controls);list.append(card);
   }
  }catch(error){status.textContent=registrationReviewError(error)}
 }
