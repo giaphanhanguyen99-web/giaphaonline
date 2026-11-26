@@ -12,14 +12,14 @@ Branch: `gia-pha-development-2026-11-25`
 ## Remaining before account registration is complete
 
 - [ ] Confirm the allowed status values and Row Level Security policies for `family_registration_requests`.
-- [ ] Add a Root Admin review screen for pending requests, with explicit approve and reject actions.
-- [ ] Add a server-side Supabase function that, in one transaction, verifies the caller is the Root Admin, finds the authenticated Google account by the request email, provisions or updates `family_user_permissions`, and records `reviewed_at` / `reviewed_by` plus the request outcome.
-- [ ] Require the applicant to sign in with Google using the same email as the request before approval can activate access; explain the next step when no matching Auth account exists.
-- [ ] Handle already-provisioned accounts, stale requests, database errors, and repeated review attempts without granting unintended access.
-- [ ] Verify the complete flow in a Development preview with a safe test account, without creating a real registration request or changing real Supabase data during code review.
+- [x] Add a Root Admin review screen for pending requests, with explicit approve and reject actions (the button is visible only to the Root Admin account).
+- [x] Draft server-side Supabase RPC functions that restrict reads and reviews to Root Admin, require a confirmed Auth email, provision only `member` or `editor`, and atomically record the request outcome and reviewer. The SQL is a Development artifact only; it has not been applied.
+- [x] Require a confirmed Google/Auth account matching the request email before approval; the review UI explains when no matching account exists.
+- [x] Handle already-provisioned non-pending accounts, stale requests, missing RPCs, and review errors without silently granting access.
+- [ ] After the migration is reviewed and applied to the intended Development Supabase environment, verify the full flow with a safe test account.
 
 ## Safety boundary
 
 The current registration table fields and the pending-email unique index are confirmed. The accepted request status values, table policies, and a secure server-side approval operation are not confirmed in the repository. A browser client must not receive a Supabase service-role key or directly administer Auth users.
 
-The server-side approval function requires a reviewed Supabase SQL change. This worklist does not run SQL or change Supabase schema or data. Keep the Development UI work isolated from Production/main until the complete flow is reviewed and separately approved for release.
+The server-side review RPCs are drafted in `SUPABASE_REGISTRATION_REVIEW_FUNCTIONS.sql`. They have not been applied. Confirm allowed request status values and table policies, then obtain explicit approval before applying SQL to Supabase. Keep the Development UI work isolated from Production/main until the complete flow is reviewed and separately approved for release.
