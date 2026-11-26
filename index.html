@@ -307,6 +307,17 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 .family-view-actions .bar{margin:0}
 .family-view-actions button{flex:1}
 @media(max-width:600px){.family-view-actions .bar{display:grid;grid-template-columns:1fr}.family-view-actions button{text-align:left}}
+/* Tổ chức lại điều hướng và thao tác trong hồ sơ cá nhân */
+.person-view-nav{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--accent) 5%,var(--surface))}
+.person-view-nav h3,.person-view-tools h3{font-size:1rem;margin:0 0 8px}
+.person-view-nav .bar{display:grid;grid-template-columns:1fr;gap:8px}
+.person-view-nav button{width:100%;min-height:44px;text-align:left}
+.person-view-tools{padding-top:12px;border-top:1px solid var(--line)}
+.person-view-tools .bar{gap:8px}
+.person-view-tools button{flex:1;min-height:42px}
+.person-view-tools button[data-a=del]{flex:0 0 auto}
+@media(max-width:600px){.person-view-tools .bar{display:grid;grid-template-columns:1fr 1fr}.person-view-tools button[data-a=del],.person-view-tools button[data-a=x]{grid-column:1/-1}}
+
 
 .tree-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.tree-nav button{min-width:42px;padding:7px 11px}.tree-nav .tn-label{font-size:.86rem;color:var(--muted);margin-right:auto}.tree-nav .tn-zoom{font-variant-numeric:tabular-nums;min-width:54px;text-align:center}@media(max-width:560px){.tree-nav{gap:6px}.tree-nav button{flex:1 1 auto}.tree-nav .tn-label{flex:1 1 100%}}
 </style>
@@ -1145,7 +1156,7 @@ function openView(id){const p=by(id);if(!p)return;const f=by(p.fatherId),mo=by(p
  const row=(k,v)=>v?`<dt>${k}</dt><dd>${v}</dd>`:'';
  const lk=x=>x?`<a href="#" data-go="${x.id}">${esc(dn(x))}</a>`:'';
  d.dataset.id=id;
- d.innerHTML=`${photoSrc(p)?`<img class="big" src="${photoSrc(p)}" alt="Ảnh của ${esc(dn(p))}">`:""}<h2>${esc(dn(p))}</h2><p class="sub">${p.gender==='nam'?'Nam':'Nữ'}, đời ${gen(p)}${ageS(p)?', '+ageS(p):''}</p><dl>${row('Ngày sinh',birthTxt(p))}${row('Ngày mất',deathTxt(p))}${row('Ngày giỗ',p.death||p.gio?gioTxt(p):'')}${row('Tôn giáo',esc(relOf(p)))}${isCath(p)?row('Tên Thánh',esc(p.saint))+row('Ngày bổn mạng',bmTxt(p)):''}${row('Nơi sinh',esc(p.place))}${row('Quê quán',esc(p.home))}${row('Nghề nghiệp',esc(p.job))}${row('Cha',lk(f))}${row('Mẹ',lk(mo))}${row('Vợ/chồng',lk(s))}${row('Con',ks.map(lk).join(', '))}${row('Ghi chú',esc(p.note))}</dl><section class="family-view-actions"><p class="sub">Lọc cây gia phả từ thành viên này:</p><div class="bar"><button class="pri" data-a="family-lineage">Dọc + ngang</button><button data-a="family-horizontal">Nhánh ngang bố mẹ</button><button data-a="family-all">Toàn bộ gia phả</button></div></section><div class="bar"><button data-a="loc" class="pri">Xem vị trí trên cây gia phả</button>${VIEW?'':`<button data-a="child">Thêm con</button>${s?'':'<button data-a="spouse">Thêm vợ/chồng</button>'}<button data-a="edit">Sửa</button><button data-a="del" class="danger">Xóa</button>`}<button data-a="x">Đóng</button></div>`;
+ d.innerHTML=`${photoSrc(p)?`<img class="big" src="${photoSrc(p)}" alt="Ảnh của ${esc(dn(p))}">`:""}<h2>${esc(dn(p))}</h2><p class="sub">${p.gender==='nam'?'Nam':'Nữ'}, đời ${gen(p)}${ageS(p)?', '+ageS(p):''}</p><dl>${row('Ngày sinh',birthTxt(p))}${row('Ngày mất',deathTxt(p))}${row('Ngày giỗ',p.death||p.gio?gioTxt(p):'')}${row('Tôn giáo',esc(relOf(p)))}${isCath(p)?row('Tên Thánh',esc(p.saint))+row('Ngày bổn mạng',bmTxt(p)):''}${row('Nơi sinh',esc(p.place))}${row('Quê quán',esc(p.home))}${row('Nghề nghiệp',esc(p.job))}${row('Cha',lk(f))}${row('Mẹ',lk(mo))}${row('Vợ/chồng',lk(s))}${row('Con',ks.map(lk).join(', '))}${row('Ghi chú',esc(p.note))}</dl><section class="person-view-nav"><h3>Điều hướng cây gia phả</h3><div class="bar"><button class="pri" data-a="family-lineage">Xem theo chiều dọc và ngang</button><button data-a="family-horizontal">Xem nhánh ngang bố mẹ</button><button data-a="family-all">Xem toàn bộ gia phả</button><button data-a="loc">Định vị người này trên cây</button></div></section><section class="person-view-tools"><h3>Quản lý hồ sơ</h3><div class="bar">${VIEW?'':`<button data-a="child">Thêm con</button>${s?'':'<button data-a="spouse">Thêm vợ/chồng</button>'}<button data-a="edit">Sửa thông tin</button><button data-a="del" class="danger">Xóa hồ sơ</button>`}<button data-a="x">Đóng bảng</button></div></section>`;
  if(!d.open)d.showModal();
 }
 $('#dv').onclick=e=>{if(e.target.classList.contains('big')){const z=$('#dz');z.innerHTML='<img src="'+e.target.src+'" alt="">';z.showModal();return}const d=$('#dv'),g=e.target.closest('[data-go]');if(g){e.preventDefault();openView(g.dataset.go);return}
