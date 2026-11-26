@@ -15,6 +15,7 @@ Branch: `gia-pha-development-2026-11-25`
 ## Remaining before account registration is fully verified
 
 - [ ] Verify the Development preview and complete Google Auth → request → Root review flow with a safe test account and test request. The connected project has no separate Supabase Development branch, and the user declined creating one, so avoid using a real family member's account or request for testing.
+- [ ] Sign in as Root Admin in the Development preview and exercise role/status changes against a designated test account. The current preview is unauthenticated; no account permission rows were changed during this work.
 
 ## Root account permission management
 
