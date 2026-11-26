@@ -41,18 +41,17 @@ AS $$
 DECLARE
   v_request public.family_registration_requests%ROWTYPE;
   v_user_id uuid;
-  v_existing_role text;
   v_existing_status text;
 BEGIN
   IF auth.uid() IS DISTINCT FROM '4f442010-a8ae-4339-9748-554ce5c281e7'::uuid THEN
     RAISE EXCEPTION 'ROOT_ADMIN_REQUIRED' USING ERRCODE = '42501';
   END IF;
 
-  IF p_decision NOT IN ('approve', 'reject') THEN
+  IF p_decision IS NULL OR p_decision NOT IN ('approve', 'reject') THEN
     RAISE EXCEPTION 'INVALID_DECISION';
   END IF;
 
-  IF p_decision = 'approve' AND p_role NOT IN ('member', 'editor') THEN
+  IF p_decision = 'approve' AND (p_role IS NULL OR p_role NOT IN ('member', 'editor')) THEN
     RAISE EXCEPTION 'INVALID_ROLE';
   END IF;
 
@@ -78,7 +77,7 @@ BEGIN
       RAISE EXCEPTION 'AUTH_ACCOUNT_NOT_FOUND';
     END IF;
 
-    SELECT p.role, p.status INTO v_existing_role, v_existing_status
+    SELECT p.status INTO v_existing_status
     FROM public.family_user_permissions AS p
     WHERE p.user_id = v_user_id
     FOR UPDATE;
