@@ -1104,6 +1104,14 @@ function openArchiveForm(item=null){
   const id=a.id||crypto.randomUUID(),uploaded=[];
   let archiveSaved=false,metadataSaved=false;
   try{
+   const dateLabel=g('date').value.trim();
+   const row={id,title,category:g('category').value,archive_date:archiveDateISO(dateLabel),date_label:dateLabel||null,contributor:g('contributor').value.trim()||null,related_member_id:g('member').value||null,description:g('description').value.trim()||null,is_public:g('public').checked,updated_at:new Date().toISOString()};
+   if(!a.id){
+    row.created_by=SBUSER.id;
+    const {error}=await SB.from('family_archives').upsert(row,{onConflict:'id'});
+    if(error)throw error;
+    archiveSaved=true;
+   }
    for(const f of files){
     const safe=f.name.replace(/[^\p{L}\p{N}._-]+/gu,'_').slice(-120)||'tep-tin';
     const path=id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'-'+safe;
@@ -1111,12 +1119,11 @@ function openArchiveForm(item=null){
     if(error)throw error;
     uploaded.push({path,file_name:f.name,mime_type:archiveMime(f),size:f.size});
    }
-   const dateLabel=g('date').value.trim();
-   const row={id,title,category:g('category').value,archive_date:archiveDateISO(dateLabel),date_label:dateLabel||null,contributor:g('contributor').value.trim()||null,related_member_id:g('member').value||null,description:g('description').value.trim()||null,is_public:g('public').checked,updated_at:new Date().toISOString()};
-   if(!a.id)row.created_by=SBUSER.id;
-   const {error}=await SB.from('family_archives').upsert(row,{onConflict:'id'});
-   if(error)throw error;
-   archiveSaved=true;
+   if(a.id){
+    const {error}=await SB.from('family_archives').upsert(row,{onConflict:'id'});
+    if(error)throw error;
+    archiveSaved=true;
+   }
    if(uploaded.length){
     const records=uploaded.map(f=>({archive_id:id,original_filename:f.file_name,storage_path:f.path,mime_type:f.mime_type,size_bytes:f.size}));
     const {error:fileError}=await SB.from('family_archive_files').insert(records);
@@ -1133,8 +1140,13 @@ function openArchiveForm(item=null){
    }
    d.close();archiveLoaded=false;await refreshArchives();render();toast('Đã lưu tư liệu vào Kho tư liệu dòng họ.');
   }catch(e){
+   if(metadataSaved){
+    console.error('Archive saved but refresh failed:',e);
+    d.close();archiveLoaded=false;toast('Tư liệu đã được lưu, nhưng chưa tải lại được danh sách. Hãy mở lại Kho tư liệu.');
+    return;
+   }
    if(uploaded.length)await SB.storage.from(ARCHIVE_BUCKET).remove(uploaded.map(f=>f.path)).catch(()=>{});
-   if(!a.id&&archiveSaved&&!metadataSaved)await SB.from('family_archives').delete().eq('id',id);
+   if(!a.id&&archiveSaved)await SB.from('family_archives').delete().eq('id',id);
    btn.disabled=false;btn.textContent='Lưu tư liệu';g('error').textContent='Chưa lưu được: '+(e.message||e);
   }
  }
