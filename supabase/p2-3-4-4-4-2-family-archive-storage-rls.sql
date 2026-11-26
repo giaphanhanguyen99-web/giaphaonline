@@ -83,7 +83,7 @@ WITH CHECK (
     OR (
       public.family_current_status() = 'active'
       AND public.family_current_role() IN ('editor', 'admin')
-      AND COALESCE(array_length(storage.foldername(name), 1), 0) >= 2
+      AND COALESCE(array_length(storage.foldername(name), 1), 0) >= 1
       AND (storage.foldername(name))[1] ~*
         '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
 
