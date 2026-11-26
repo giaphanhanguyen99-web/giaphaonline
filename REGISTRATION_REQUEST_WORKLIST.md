@@ -21,6 +21,6 @@ Branch: `gia-pha-development-2026-11-25`
 
 ## Safety boundary
 
-The current registration table fields and the pending-email unique index are confirmed. The accepted request status values, table policies, and a secure server-side approval operation are not confirmed in the repository. A browser client must not receive a Supabase service-role key or directly administer Auth users.
+The current registration table fields and pending-email unique index are confirmed. Live read-only inspection also confirmed the request status constraint and relevant RLS policies. The reviewed RPC SQL remains unapplied. A browser client must not receive a Supabase service-role key or directly administer Auth users.
 
 The server-side review RPCs are drafted in `SUPABASE_REGISTRATION_REVIEW_FUNCTIONS.sql`. They have not been applied. Read-only checks confirmed the current status constraint and RLS policies on the connected primary project. There is no separate Supabase Development branch, and the user declined creating one because of possible hourly charges. Keep the connected project unchanged; verify `private` is not in the Data API exposed-schema list before any future SQL application. Keep the Development UI work isolated from Production/main until the complete flow is reviewed and separately approved for release.
