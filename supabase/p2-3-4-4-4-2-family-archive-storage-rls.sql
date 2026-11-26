@@ -12,12 +12,9 @@
 --   active Admin and Root: update/delete objects.
 --
 -- Important implementation detail:
--- The current website uploads a new file to Storage BEFORE inserting its
--- family_archives row and family_archive_files metadata. Therefore INSERT
--- cannot safely require an existing parent archive row without first changing
--- that frontend save order. This policy limits uploads to active Editor/Admin
--- accounts and UUID/archive-style folders. Orphan cleanup and stricter
--- parent-to-object binding should be handled alongside the frontend workflow.
+-- The website creates a new family_archives row before uploading files.
+-- Storage uploads can therefore be restricted to an existing parent archive
+-- whose row is visible to the active Editor/Admin or Root account.
 
 BEGIN;
 
@@ -73,7 +70,8 @@ USING (
 );
 
 -- The current frontend uses <archive UUID>/<generated filename> as object path.
--- Only active Editors/Admins (and Root) may upload to this private bucket.
+-- Require the first path segment to identify an existing archive row.
+-- RLS on family_archives ensures non-root users can only target rows they may access.
 CREATE POLICY family_archive_storage_upload
 ON storage.objects
 FOR INSERT
@@ -87,7 +85,57 @@ WITH CHECK (
       AND public.family_current_role() IN ('editor', 'admin')
       AND COALESCE(array_length(storage.foldername(name), 1), 0) >= 2
       AND (storage.foldername(name))[1] ~*
-        '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+
+-- Object replacement/update is reserved for Admin and Root.
+CREATE POLICY family_archive_storage_update
+ON storage.objects
+FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'family-archives'
+  AND (
+    public.family_is_root_admin()
+    OR (
+      public.family_current_status() = 'active'
+      AND public.family_current_role() = 'admin'
+    )
+  )
+)
+WITH CHECK (
+  bucket_id = 'family-archives'
+  AND (
+    public.family_is_root_admin()
+    OR (
+      public.family_current_status() = 'active'
+      AND public.family_current_role() = 'admin'
+    )
+  )
+);
+
+-- Physical object deletion is reserved for Admin and Root.
+CREATE POLICY family_archive_storage_delete
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'family-archives'
+  AND (
+    public.family_is_root_admin()
+    OR (
+      public.family_current_status() = 'active'
+      AND public.family_current_role() = 'admin'
+    )
+  )
+);
+
+COMMIT;
+
+      AND EXISTS (
+        SELECT 1
+        FROM public.family_archives a
+        WHERE a.id::text = (storage.foldername(name))[1]
+      )
     )
   )
 );
