@@ -11,15 +11,16 @@ Branch: `gia-pha-development-2026-11-25`
 
 ## Remaining before account registration is complete
 
-- [ ] Confirm the allowed status values and Row Level Security policies for `family_registration_requests` by running the read-only metadata queries in `SUPABASE_REGISTRATION_REVIEW_PREFLIGHT_READ_ONLY.sql` against the intended Development Supabase project.
+- [x] Confirm table metadata: registration statuses are constrained to `pending` / `approved` / `rejected`; RLS is enabled; Root Admin has SELECT on requests and ALL on permissions, with no request UPDATE policy. The privileged review operation therefore needs a narrowly scoped server-side path.
 - [x] Add a Root Admin review screen for pending requests, with explicit approve and reject actions (the button is visible only to the Root Admin account).
-- [x] Draft server-side Supabase RPC functions that restrict reads and reviews to Root Admin, require a confirmed Auth email, provision only `member` or `editor`, and atomically record the request outcome and reviewer. The SQL is a Development artifact only; it has not been applied.
+- [x] Draft invoker-only public RPCs and isolate the privileged update in a `private` schema helper. The helper checks Root Admin, requires a confirmed Auth email, provisions only `member` or `editor`, refuses to overwrite non-pending permissions, and updates review metadata atomically. The SQL is a Development artifact only; it has not been applied.
 - [x] Require a confirmed Google/Auth account matching the request email before approval; the review UI explains when no matching account exists.
 - [x] Handle already-provisioned non-pending accounts, stale requests, missing RPCs, and review errors without silently granting access.
-- [ ] After the migration is reviewed and applied to the intended Development Supabase environment, verify the full flow with a safe test account.
+- [ ] Create or select an isolated Supabase Development branch, confirm its cost, and verify the `private` schema is not exposed in the Data API settings.
+- [ ] Apply the reviewed RPC migration only on that Development branch, then verify the full flow with a safe test account.
 
 ## Safety boundary
 
 The current registration table fields and the pending-email unique index are confirmed. The accepted request status values, table policies, and a secure server-side approval operation are not confirmed in the repository. A browser client must not receive a Supabase service-role key or directly administer Auth users.
 
-The server-side review RPCs are drafted in `SUPABASE_REGISTRATION_REVIEW_FUNCTIONS.sql`. They have not been applied. The read-only inspection queries are in `SUPABASE_REGISTRATION_REVIEW_PREFLIGHT_READ_ONLY.sql`. Confirm allowed request status values and table policies, then obtain explicit approval before applying SQL to Supabase. Keep the Development UI work isolated from Production/main until the complete flow is reviewed and separately approved for release.
+The server-side review RPCs are drafted in `SUPABASE_REGISTRATION_REVIEW_FUNCTIONS.sql`. They have not been applied. Read-only checks confirmed the current status constraint and RLS policies on the connected project. That project has no separate Supabase Development branch, so do not apply SQL there. A separate branch requires a cost confirmation. Verify `private` is not in the Data API exposed-schema list before applying the SQL to an isolated branch. Keep the Development UI work isolated from Production/main until the complete flow is reviewed and separately approved for release.
