@@ -5,22 +5,22 @@ Branch: `gia-pha-development-2026-11-25`
 ## Completed
 
 - [x] Public registration request form collects email, full name, and phone.
-- [x] Submission checks for a pending request with the same email and displays a clear Vietnamese message.
-- [x] The database unique partial index remains the final protection against concurrent duplicate submissions.
-- [x] Existing Google sign-in and permission loading keep users without active permission in visitor mode.
+- [x] Submission checks for a pending request with the same email and displays a clear Vietnamese message. The database partial unique index remains the final protection against concurrent duplicates.
+- [x] Registration copy explains the required order: submit the request, then sign in with Google using the same email.
+- [x] Root Admin-only review screen lists pending requests using the existing Root SELECT policy.
+- [x] Review actions call the existing `approve_family_registration` and `reject_family_registration` RPCs. Approval provisions the default `member` role.
+- [x] Error handling covers missing/expired requests, non-confirmed Auth accounts, non-Root callers, conflicting permission status, and RPC failures.
+- [x] Applied Supabase migration `harden_family_registration_functions` (version `20261126085832`) to harden the existing submit/approve/reject RPCs. It sets a fixed `pg_catalog` search path, validates inputs, confirms the Auth email before approval, refuses to reactivate non-pending permission records, and restricts function execution grants. It does not modify table rows.
 
-## Remaining before account registration is complete
+## Remaining before account registration is fully verified
 
-- [x] Confirm table metadata: registration statuses are constrained to `pending` / `approved` / `rejected`; RLS is enabled; Root Admin has SELECT on requests and ALL on permissions, with no request UPDATE policy. The privileged review operation therefore needs a narrowly scoped server-side path.
-- [x] Add a Root Admin review screen for pending requests, with explicit approve and reject actions (the button is visible only to the Root Admin account).
-- [x] Draft invoker-only public RPCs and isolate the privileged update in a `private` schema helper. The helper checks Root Admin, requires a confirmed Auth email, provisions only `member` or `editor`, refuses to overwrite non-pending permissions, and updates review metadata atomically. The SQL is a Development artifact only; it has not been applied.
-- [x] Explain that an applicant submits the request first, then signs in with Google using the same email before Root Admin approval; the review UI also explains when no matching account exists.
-- [x] Handle already-provisioned non-pending accounts, stale requests, missing RPCs, and review errors without silently granting access.
-- [ ] No Supabase Development branch exists. The user declined creating one because of possible hourly charges; do not retry unless they change that decision. The connected primary project must remain unchanged.
-- [ ] Apply the reviewed RPC migration only after a safe target environment and explicit authorization are established; then verify the full flow with a safe test account.
+- [ ] Verify the Development preview and complete Google Auth → request → Root review flow with a safe test account and test request. The connected project has no separate Supabase Development branch, and the user declined creating one, so avoid using a real family member's account or request for testing.
 
-## Safety boundary
+## Environment and safety notes
 
-The current registration table fields and pending-email unique index are confirmed. Live read-only inspection also confirmed the request status constraint and relevant RLS policies. The reviewed RPC SQL remains unapplied. A browser client must not receive a Supabase service-role key or directly administer Auth users.
-
-The server-side review RPCs are drafted in `SUPABASE_REGISTRATION_REVIEW_FUNCTIONS.sql`. They have not been applied. Read-only checks confirmed the current status constraint and RLS policies on the connected primary project. There is no separate Supabase Development branch, and the user declined creating one because of possible hourly charges. Keep the connected project unchanged; verify `private` is not in the Data API exposed-schema list before any future SQL application. Keep the Development UI work isolated from Production/main until the complete flow is reviewed and separately approved for release.
+- Live metadata confirmed the request status constraint (`pending`, `approved`, `rejected`), RLS enabled, Root SELECT on registration requests, and Root ALL on `family_user_permissions`.
+- The migration changed function definitions only. No registration rows, permission rows, member records, or files were changed.
+- The Supabase project has no Development branch. The user authorized Supabase changes and declined creating a billed branch; the authorized hardening migration was applied to the connected project.
+- GitHub `main` and Production code were not changed. The website work remains on `gia-pha-development-2026-11-25`.
+- A generic Supabase security advisor warning remains for SECURITY DEFINER functions exposed to authenticated/anon roles. Registration functions have fixed search paths, explicit Root UID guards where required, and narrow EXECUTE grants; the public submit RPC intentionally accepts anon requests.
+- Do not expose a service-role key in the browser.
