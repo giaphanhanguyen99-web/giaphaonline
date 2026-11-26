@@ -326,7 +326,7 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 <div class="wrap">
 <header>
  <div class="brand"><h1><span class="brand-mark">CỘI NGUỒN</span></h1><p class="brand-sub"><strong>Giuse Nguyễn Bá Đông</strong><span class="brand-motto">Gìn giữ cội nguồn · Kết nối thế hệ · Lưu truyền di sản</span></p><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
- <div class="actions"><button id="register-open" type="button">Đăng ký tài khoản</button><button id="auth-login" type="button" hidden>Đăng nhập Google</button><button id="auth-logout" type="button" hidden>Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button></div>
+ <div class="actions"><button id="register-open" type="button">Đăng ký tài khoản</button><button id="registration-review-open" type="button" hidden>Phiếu đăng ký chờ duyệt</button><button id="auth-login" type="button" hidden>Đăng nhập Google</button><button id="auth-logout" type="button" hidden>Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button></div>
 </header>
 <div id="admin-actions-source" hidden aria-hidden="true"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="ld" class="vw">Khôi phục từ tệp sao lưu</button><button id="bak" class="pa">Sao lưu và khôi phục dữ liệu</button><button id="db-export" class="pa">Sao lưu dữ liệu và tệp</button><button id="db-restore" class="pa">Khôi phục bản sao đầy đủ</button><input id="db-restore-file" type="file" accept=".json,application/json" hidden=""><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
 <div class="app-layout"><nav class="tabs" aria-label="Điều hướng chính"><div class="nav-heading">KHÔNG GIAN GIA ĐÌNH</div><button data-v="home" aria-pressed="true">⌂ &nbsp; Tổng quan</button><button data-v="tree" aria-pressed="false">♧ &nbsp; Cây gia phả</button><button data-v="list" aria-pressed="false">☷ &nbsp; Danh sách thành viên</button><button data-v="gio" aria-pressed="false">◷ &nbsp; Ngày giỗ</button><button data-v="bm" aria-pressed="false">✦ &nbsp; Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">▤ &nbsp; Kho tư liệu</button><button data-v="admin" aria-pressed="false" class="pa">⚙ &nbsp; Quản trị</button><button data-v="st" aria-pressed="false" class="pa" id="tst">✧ &nbsp; Các Thánh</button><button data-v="nt" aria-pressed="false" id="tnt">▣ &nbsp; Kho thông báo</button></nav><section class="content-shell"><input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
@@ -343,6 +343,10 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 <label class="w">Số điện thoại<input id="register-phone" type="tel" autocomplete="tel" required maxlength="30" placeholder="09xxxxxxxx"></label>
 </div><p id="register-error" class="err" role="alert"></p><div class="bar"><button class="pri" type="submit">Gửi phiếu đăng ký</button><button type="button" id="register-cancel">Đóng</button></div></form>
 <section id="register-preview" hidden><h3>Phiếu đăng ký đã gửi</h3><dl><dt>Email</dt><dd id="preview-email"></dd><dt>Họ tên</dt><dd id="preview-name"></dd><dt>Số điện thoại</dt><dd id="preview-phone"></dd><dt>Trạng thái</dt><dd>Chờ Root Admin xét duyệt</dd></dl><p class="sub">Phiếu đã được lưu. Root Admin sẽ xem xét yêu cầu của bạn.</p><div class="bar"><button type="button" id="register-reset">Chỉnh sửa thông tin</button><button type="button" id="register-close-preview">Đóng và tiếp tục duyệt web</button></div></section>
+</dialog>
+<dialog id="registration-review-dialog" style="max-width:900px;width:calc(100% - 32px);border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:24px">
+<h2>Duyệt phiếu đăng ký</h2><p id="registration-review-status" class="sub" role="status"></p><div id="registration-review-list" class="grid"></div>
+<div class="bar"><button id="registration-review-refresh" type="button">Tải lại danh sách</button><button id="registration-review-close" type="button">Đóng</button></div>
 </dialog>
 <script>(async()=>{
 const SUPABASE_URL='https://jythsoipunwojlkqemdp.supabase.co',SUPABASE_KEY='sb_publishable_aHk_WQ8BFsFv5dSr6pmIwA_zyHe4_9X',ADMIN_UID='4f442010-a8ae-4339-9748-554ce5c281e7',PHOTO_BUCKET='gia-pha-photos',ARCHIVE_BUCKET='family-archives';
@@ -399,7 +403,7 @@ async function familyLoadPermission(user=SBUSER){
   if(request===FAMILY_PERMISSION_REQUEST){console.warn('Lỗi tải quyền tài khoản:',error);familySetPermission('visitor','pending')}
  }
 }
-function syncAuthButtons(){const login=document.getElementById('auth-login'),logout=document.getElementById('auth-logout');if(login)login.hidden=!!SBUSER;if(logout)logout.hidden=!SBUSER}
+function syncAuthButtons(){const login=document.getElementById('auth-login'),logout=document.getElementById('auth-logout'),review=document.getElementById('registration-review-open');if(login)login.hidden=!!SBUSER;if(logout)logout.hidden=!SBUSER;if(review)review.hidden=!(SBUSER&&SBUSER.id===ADMIN_UID)}
 try{if(window.supabase?.createClient){SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});SB.auth.onAuthStateChange((event,session)=>{FAMILY_PERMISSION_REQUEST++;if(session){SBUSER=session.user;syncAuthButtons();Promise.resolve().then(()=>familyLoadPermission(session.user))}else if(event==='SIGNED_OUT'){SBUSER=null;familySetPermission('visitor','pending');syncAuthButtons()}});const {data,error}=await SB.auth.getSession();if(!error){SBUSER=data.session?.user||null;await familyLoadPermission(SBUSER)}else{SBUSER=null;familySetPermission('visitor','pending')}syncAuthButtons()}const c=window.claude;if(c){const u=await c.use('user');OWN=!!(u&&await u.isOwner());DB=await c.use('db')}else{OWN=!!(SBUSER&&SBUSER.id===ADMIN_UID)}}catch(e){console.warn('Khởi tạo Supabase:',e);familySetPermission('visitor','pending');syncAuthButtons()}
 const dat=s=>s&&(typeof s.data==='function'?s.data():s.data);
 document.documentElement.dataset.mode=OWN?'':'view';
@@ -797,6 +801,59 @@ $('#register-cancel').onclick=()=>$('#register-dialog').close();
 $('#register-reset').onclick=()=>{$('#register-preview').hidden=true;$('#register-form').hidden=false};
 $('#register-close-preview').onclick=()=>$('#register-dialog').close();
 $('#register-form').onsubmit=async e=>{e.preventDefault();const email=$('#register-email').value.trim().toLowerCase(),name=$('#register-name').value.trim(),phone=$('#register-phone').value.trim(),btn=$('#register-form button[type="submit"]');if(!email||!name||!phone){$('#register-error').textContent='Vui lòng điền đủ email, họ tên và số điện thoại.';return}if(!SB){$('#register-error').textContent='Không kết nối được hệ thống. Vui lòng thử lại sau.';return}$('#register-error').textContent='';btn.disabled=true;btn.textContent='Đang kiểm tra email…';try{const {data:pendingRequest,error:pendingCheckError}=await SB.from('family_registration_requests').select('id').eq('email',email).eq('status','pending').limit(1).maybeSingle();if(!pendingCheckError&&pendingRequest){$('#register-error').textContent='Email này đã có phiếu đăng ký đang chờ duyệt. Không thể gửi phiếu trùng.';return}btn.textContent='Đang gửi phiếu…';const {data,error}=await SB.rpc('submit_family_registration',{p_email:email,p_full_name:name,p_phone:phone});if(error){const msg=String(error.message||error.details||error);if(msg.includes('EMAIL_ACCOUNT_EXISTS'))throw new Error('EMAIL_ACCOUNT_EXISTS');if(msg.includes('EMAIL_PENDING_EXISTS')||msg.includes('family_registration_requests_pending_email_unique'))throw new Error('EMAIL_PENDING_EXISTS');throw error}if(!data)throw new Error('Không nhận được xác nhận lưu phiếu.');$('#preview-email').textContent=email;$('#preview-name').textContent=name;$('#preview-phone').textContent=phone;$('#register-form').hidden=true;$('#register-preview').hidden=false}catch(err){let msg=String(err.message||err);if(msg.includes('EMAIL_ACCOUNT_EXISTS'))$('#register-error').textContent='Email này đã có tài khoản chính thức. Bạn không cần đăng ký lại.';else if(msg.includes('EMAIL_PENDING_EXISTS'))$('#register-error').textContent='Email này đã có phiếu đăng ký đang chờ duyệt. Không thể gửi phiếu trùng.';else $('#register-error').textContent='Không gửi được phiếu: '+msg;}finally{btn.disabled=false;btn.textContent='Gửi phiếu đăng ký'}};
+const reviewDialog=$('#registration-review-dialog');
+function registrationReviewError(error){
+ const raw=String(error?.message||error||'');
+ if(raw.includes('AUTH_ACCOUNT_NOT_FOUND'))return 'Chưa tìm thấy tài khoản Google đã xác minh email này. Người đăng ký cần đăng nhập Google bằng đúng email trên phiếu rồi Root Admin mới duyệt.';
+ if(raw.includes('ACCOUNT_STATUS_CONFLICT'))return 'Tài khoản đã có trạng thái hoặc quyền khác chờ Root Admin xử lý riêng. Phiếu vẫn đang chờ duyệt.';
+ if(raw.includes('REQUEST_NOT_PENDING'))return 'Phiếu này không còn ở trạng thái chờ duyệt. Hãy tải lại danh sách.';
+ if(raw.includes('ROOT_ADMIN_REQUIRED'))return 'Tài khoản hiện tại không có quyền Root Admin.';
+ if(raw.includes('PGRST202')||raw.includes('Could not find the function'))return 'Supabase chưa có hàm duyệt phiếu. Cần áp dụng tệp SUPABASE_REGISTRATION_REVIEW_FUNCTIONS.sql sau khi rà soát trước khi dùng chức năng này.';
+ return 'Không xử lý được phiếu: '+raw;
+}
+async function loadRegistrationRequests(){
+ const status=$('#registration-review-status'),list=$('#registration-review-list');
+ list.replaceChildren();
+ if(!SBUSER||SBUSER.id!==ADMIN_UID){status.textContent='Chỉ Root Admin mới được xem danh sách phiếu.';return}
+ if(!SB){status.textContent='Không kết nối được Supabase.';return}
+ status.textContent='Đang tải phiếu chờ duyệt…';
+ try{
+  const {data,error}=await SB.rpc('family_admin_list_registration_requests');
+  if(error)throw error;
+  const requests=Array.isArray(data)?data:[];
+  if(!requests.length){status.textContent='Hiện không có phiếu đăng ký chờ duyệt.';return}
+  status.textContent='Có '+requests.length+' phiếu đang chờ duyệt.';
+  for(const request of requests){
+   const card=document.createElement('article');card.className='card';card.style.gridColumn='1 / -1';
+   const title=document.createElement('h3');title.textContent=String(request.full_name||'Chưa có họ tên');card.append(title);
+   const details=document.createElement('p');details.className='sub';
+   const created=request.created_at?new Date(request.created_at).toLocaleString('vi-VN'):'Không rõ thời điểm';
+   details.textContent=String(request.email||'')+' · '+String(request.phone||'')+' · Gửi lúc '+created;card.append(details);
+   const controls=document.createElement('div');controls.className='bar';
+   const role=document.createElement('select');role.setAttribute('aria-label','Vai trò cấp khi duyệt');
+   [['member','Thành viên'],['editor','Biên tập viên']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;role.append(option)});
+   const approve=document.createElement('button');approve.type='button';approve.className='pri';approve.textContent='Duyệt và cấp quyền';
+   approve.onclick=()=>reviewRegistrationRequest(request.id,'approve',role.value);
+   const reject=document.createElement('button');reject.type='button';reject.textContent='Từ chối';
+   reject.onclick=()=>{if(confirm('Từ chối phiếu đăng ký của '+String(request.full_name||request.email||'người này')+'?'))reviewRegistrationRequest(request.id,'reject','member')};
+   controls.append(role,approve,reject);card.append(controls);list.append(card);
+  }
+ }catch(error){status.textContent=registrationReviewError(error)}
+}
+async function reviewRegistrationRequest(requestId,decision,role){
+ const status=$('#registration-review-status'),buttons=Array.from($('#registration-review-list').querySelectorAll('button'));
+ if(!SBUSER||SBUSER.id!==ADMIN_UID){status.textContent='Chỉ Root Admin mới được xử lý phiếu.';return}
+ buttons.forEach(button=>button.disabled=true);status.textContent='Đang cập nhật phiếu…';
+ try{
+  const {error}=await SB.rpc('family_review_registration_request',{p_request_id:requestId,p_decision:decision,p_role:role});
+  if(error)throw error;
+  status.textContent=decision==='approve'?'Đã duyệt phiếu và kích hoạt quyền tài khoản.':'Đã từ chối phiếu.';
+  await loadRegistrationRequests();
+ }catch(error){status.textContent=registrationReviewError(error);buttons.forEach(button=>button.disabled=false)}
+}
+$('#registration-review-open').onclick=()=>{if(!SBUSER||SBUSER.id!==ADMIN_UID){toast('Chỉ Root Admin mới được xem phiếu đăng ký.');return}reviewDialog.showModal();loadRegistrationRequests()};
+$('#registration-review-refresh').onclick=loadRegistrationRequests;
+$('#registration-review-close').onclick=()=>reviewDialog.close();
 $('#auth-login').onclick=async()=>{if(SBUSER)return;if(location.protocol==='file:'){toast('Cần đưa website lên một địa chỉ HTTPS trước khi đăng nhập Google. Ta sẽ cấu hình địa chỉ này ở bước triển khai website.');return}if(!SB){toast('Không tải được thư viện kết nối Supabase. Hãy kiểm tra kết nối Internet rồi tải lại trang.');return}const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)toast('Không đăng nhập được: '+error.message)};
 $('#auth-logout').onclick=async()=>{if(!SBUSER)return;if(SB){const {error}=await SB.auth.signOut();if(error){toast('Không đăng xuất được: '+error.message);return}}location.reload()};
 function buildHtml(t,v){const c=document.documentElement.cloneNode(true);
