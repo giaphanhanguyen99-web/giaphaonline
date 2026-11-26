@@ -807,8 +807,8 @@ function registrationReviewError(error){
  if(raw.includes('AUTH_ACCOUNT_NOT_FOUND'))return 'Chưa tìm thấy tài khoản Google đã xác minh email này. Người đăng ký cần đăng nhập Google bằng đúng email trên phiếu rồi Root Admin mới duyệt.';
  if(raw.includes('ACCOUNT_STATUS_CONFLICT'))return 'Tài khoản đã có trạng thái hoặc quyền khác chờ Root Admin xử lý riêng. Phiếu vẫn đang chờ duyệt.';
  if(raw.includes('REQUEST_NOT_PENDING'))return 'Phiếu này không còn ở trạng thái chờ duyệt. Hãy tải lại danh sách.';
- if(raw.includes('ROOT_ADMIN_REQUIRED'))return 'Tài khoản hiện tại không có quyền Root Admin.';
- if(raw.includes('PGRST202')||raw.includes('Could not find the function'))return 'Supabase chưa có hàm duyệt phiếu. Cần áp dụng tệp SUPABASE_REGISTRATION_REVIEW_FUNCTIONS.sql sau khi rà soát trước khi dùng chức năng này.';
+ if(raw.includes('ROOT_ADMIN_REQUIRED')||raw.includes('ROOT_ONLY'))return 'Tài khoản hiện tại không có quyền Root Admin.';
+ if(raw.includes('PGRST202')||raw.includes('Could not find the function'))return 'Supabase chưa cung cấp thao tác duyệt phiếu. Hãy báo Root Admin kiểm tra cấu hình hệ thống.';
  return 'Không xử lý được phiếu: '+raw;
 }
 async function loadRegistrationRequests(){
@@ -818,7 +818,7 @@ async function loadRegistrationRequests(){
  if(!SB){status.textContent='Không kết nối được Supabase.';return}
  status.textContent='Đang tải phiếu chờ duyệt…';
  try{
-  const {data,error}=await SB.rpc('family_admin_list_registration_requests');
+  const {data,error}=await SB.from('family_registration_requests').select('id,email,full_name,phone,created_at').eq('status','pending').order('created_at',{ascending:true});
   if(error)throw error;
   const requests=Array.isArray(data)?data:[];
   if(!requests.length){status.textContent='Hiện không có phiếu đăng ký chờ duyệt.';return}
@@ -830,22 +830,21 @@ async function loadRegistrationRequests(){
    const created=request.created_at?new Date(request.created_at).toLocaleString('vi-VN'):'Không rõ thời điểm';
    details.textContent=String(request.email||'')+' · '+String(request.phone||'')+' · Gửi lúc '+created;card.append(details);
    const controls=document.createElement('div');controls.className='bar';
-   const role=document.createElement('select');role.setAttribute('aria-label','Vai trò cấp khi duyệt');
-   [['member','Thành viên'],['editor','Biên tập viên']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;role.append(option)});
-   const approve=document.createElement('button');approve.type='button';approve.className='pri';approve.textContent='Duyệt và cấp quyền';
-   approve.onclick=()=>reviewRegistrationRequest(request.id,'approve',role.value);
+   const approve=document.createElement('button');approve.type='button';approve.className='pri';approve.textContent='Duyệt và cấp quyền Thành viên';
+   approve.onclick=()=>reviewRegistrationRequest(request.id,'approve');
    const reject=document.createElement('button');reject.type='button';reject.textContent='Từ chối';
    reject.onclick=()=>{if(confirm('Từ chối phiếu đăng ký của '+String(request.full_name||request.email||'người này')+'?'))reviewRegistrationRequest(request.id,'reject','member')};
    controls.append(role,approve,reject);card.append(controls);list.append(card);
   }
  }catch(error){status.textContent=registrationReviewError(error)}
 }
-async function reviewRegistrationRequest(requestId,decision,role){
+async function reviewRegistrationRequest(requestId,decision){
  const status=$('#registration-review-status'),buttons=Array.from($('#registration-review-list').querySelectorAll('button'));
  if(!SBUSER||SBUSER.id!==ADMIN_UID){status.textContent='Chỉ Root Admin mới được xử lý phiếu.';return}
  buttons.forEach(button=>button.disabled=true);status.textContent='Đang cập nhật phiếu…';
  try{
-  const {error}=await SB.rpc('family_review_registration_request',{p_request_id:requestId,p_decision:decision,p_role:role});
+  const rpcName=decision==='approve'?'approve_family_registration':'reject_family_registration';
+  const {error}=await SB.rpc(rpcName,{p_request_id:requestId});
   if(error)throw error;
   status.textContent=decision==='approve'?'Đã duyệt phiếu và kích hoạt quyền tài khoản.':'Đã từ chối phiếu.';
   await loadRegistrationRequests();
