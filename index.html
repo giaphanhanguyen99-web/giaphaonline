@@ -326,7 +326,7 @@ header #auth-login:hover,header #ld:hover{background:#e5cc98;border-color:#e5cc9
 <div class="wrap">
 <header>
  <div class="brand"><h1><span class="brand-mark">CỘI NGUỒN</span></h1><p class="brand-sub"><strong>Giuse Nguyễn Bá Đông</strong><span class="brand-motto">Gìn giữ cội nguồn · Kết nối thế hệ · Lưu truyền di sản</span></p><p id="count"></p><p id="updm"></p><p id="today"></p><p id="auth-status" class="sub"></p></div>
- <div class="actions"><button id="auth-login" type="button" hidden>Đăng nhập</button><button id="auth-logout" type="button" hidden>Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button></div>
+ <div class="actions"><button id="register-open" type="button">Đăng ký tài khoản</button><button id="auth-login" type="button" hidden>Đăng nhập Google</button><button id="auth-logout" type="button" hidden>Đăng xuất</button><button id="upn" class="vw" style="display:none">Cập nhật ngay</button></div>
 </header>
 <div id="admin-actions-source" hidden aria-hidden="true"><button id="add" class="pri pa">Thêm người</button><button id="cloud-backup" class="pri pa">Sao lưu lên đám mây</button><button id="ld" class="vw">Khôi phục từ tệp sao lưu</button><button id="bak" class="pa">Sao lưu và khôi phục dữ liệu</button><button id="db-export" class="pa">Sao lưu dữ liệu và tệp</button><button id="db-restore" class="pa">Khôi phục bản sao đầy đủ</button><input id="db-restore-file" type="file" accept=".json,application/json" hidden=""><input id="ldf" type="file" accept=".json,application/json" hidden=""></div>
 <div class="app-layout"><nav class="tabs" aria-label="Điều hướng chính"><div class="nav-heading">KHÔNG GIAN GIA ĐÌNH</div><button data-v="home" aria-pressed="true">⌂ &nbsp; Tổng quan</button><button data-v="tree" aria-pressed="false">♧ &nbsp; Cây gia phả</button><button data-v="list" aria-pressed="false">☷ &nbsp; Danh sách thành viên</button><button data-v="gio" aria-pressed="false">◷ &nbsp; Ngày giỗ</button><button data-v="bm" aria-pressed="false">✦ &nbsp; Ngày bổn mạng</button><button data-v="archives" aria-pressed="false">▤ &nbsp; Kho tư liệu</button><button data-v="admin" aria-pressed="false" class="pa">⚙ &nbsp; Quản trị</button><button data-v="st" aria-pressed="false" class="pa" id="tst">✧ &nbsp; Các Thánh</button><button data-v="nt" aria-pressed="false" id="tnt">▣ &nbsp; Kho thông báo</button></nav><section class="content-shell"><input id="q" type="search" placeholder="Tìm theo tên, quê quán, nghề nghiệp, ghi chú" aria-label="Tìm kiếm">
@@ -783,6 +783,10 @@ $('#dz').onclick=()=>$('#dz').close();
 const toast=m=>{const e=$('#toast');e.textContent=m;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{e.hidden=true},7000)};
 syncAuthButtons();
 if(SBUSER&&SBUSER.id===ADMIN_UID)$('#auth-status').textContent='Đã đăng nhập Root Admin';else if(SBUSER)$('#auth-status').textContent='Đã đăng nhập · '+({member:'Thành viên',editor:'Biên tập viên',admin:'Quản trị viên'}[FAMILY_ROLE]||'chưa được cấp quyền');else $('#auth-status').textContent='Chế độ xem công khai';
+$('#register-open').onclick=()=>{$('#register-preview').hidden=true;$('#register-form').hidden=false;$('#register-dialog').showModal()};
+$('#register-cancel').onclick=()=>$('#register-dialog').close();
+$('#register-reset').onclick=()=>{$('#register-preview').hidden=true;$('#register-form').hidden=false};
+$('#register-form').onsubmit=e=>{e.preventDefault();const email=$('#register-email').value.trim(),name=$('#register-name').value.trim(),phone=$('#register-phone').value.trim();if(!email||!name||!phone){$('#register-error').textContent='Vui lòng điền đủ email, họ tên và số điện thoại.';return}$('#register-error').textContent='';$('#preview-email').textContent=email;$('#preview-name').textContent=name;$('#preview-phone').textContent=phone;$('#register-form').hidden=true;$('#register-preview').hidden=false};
 $('#auth-login').onclick=async()=>{if(SBUSER)return;if(location.protocol==='file:'){toast('Cần đưa website lên một địa chỉ HTTPS trước khi đăng nhập Google. Ta sẽ cấu hình địa chỉ này ở bước triển khai website.');return}if(!SB){toast('Không tải được thư viện kết nối Supabase. Hãy kiểm tra kết nối Internet rồi tải lại trang.');return}const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)toast('Không đăng nhập được: '+error.message)};
 $('#auth-logout').onclick=async()=>{if(!SBUSER)return;if(SB){const {error}=await SB.auth.signOut();if(error){toast('Không đăng xuất được: '+error.message);return}}location.reload()};
 function buildHtml(t,v){const c=document.documentElement.cloneNode(true);
@@ -1357,4 +1361,12 @@ if(VIEW){$('#upn').style.display='none';document.addEventListener('visibilitycha
 })();</script>
 
 
-</body></html>
+<dialog id="register-dialog" style="max-width:560px;width:calc(100% - 32px);border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:24px">
+<h2>Phiếu đăng ký tài khoản</h2><p class="sub">Điền thông tin để gửi yêu cầu cho Root Admin xét duyệt. Phiếu minh họa này chưa gửi hoặc lưu dữ liệu.</p>
+<form id="register-form"><div class="grid">
+<label class="w">Email<input id="register-email" type="email" autocomplete="email" required placeholder="email@example.com"></label>
+<label class="w">Họ và tên đầy đủ<input id="register-name" autocomplete="name" required maxlength="150" placeholder="Nguyễn Văn ..."></label>
+<label class="w">Số điện thoại<input id="register-phone" type="tel" autocomplete="tel" required maxlength="30" placeholder="09xxxxxxxx"></label>
+</div><p id="register-error" class="err" role="alert"></p><div class="bar"><button class="pri" type="submit">Tạo phiếu xem trước</button><button type="button" id="register-cancel">Đóng</button></div></form>
+<section id="register-preview" hidden><h3>Phiếu đăng ký xem trước</h3><dl><dt>Email</dt><dd id="preview-email"></dd><dt>Họ tên</dt><dd id="preview-name"></dd><dt>Số điện thoại</dt><dd id="preview-phone"></dd><dt>Trạng thái</dt><dd>Chờ Root Admin xét duyệt</dd></dl><p class="sub">Bước giao diện: phiếu chưa được gửi đến Root hoặc lưu vào hệ thống.</p><button type="button" id="register-reset">Chỉnh sửa thông tin</button></section>
+</dialog></body></html>
