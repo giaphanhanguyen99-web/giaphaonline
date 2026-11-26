@@ -96,8 +96,7 @@ CREATE POLICY family_permissions_root_manage
   WITH CHECK (public.family_is_root_admin());
 
 REVOKE ALL ON public.family_user_permissions FROM anon;
-REVOKE INSERT, UPDATE, DELETE ON public.family_user_permissions FROM authenticated;
-GRANT SELECT ON public.family_user_permissions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.family_user_permissions TO authenticated;
 
 REVOKE ALL ON FUNCTION public.family_is_root_admin() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.family_user_is_admin() FROM PUBLIC;
