@@ -1494,7 +1494,7 @@ function openForm(pre={},id=null){if(id?!familyCan('member_update'):!familyCan('
   if(id)people=people.map(x=>x.id===id?o:x);else people.push(o);
   if(old&&old!==o.spouseId){const x=by(old);if(x&&x.spouseId===o.id)delete x.spouseId}
   if(o.spouseId){const x=by(o.spouseId);if(x){if(x.spouseId&&x.spouseId!==o.id){const y=by(x.spouseId);if(y&&y.spouseId===x.id)delete y.spouseId}x.spouseId=o.id}}
-  if(OWN&&SB&&SBUSER&&SBUSER.id!==ADMIN_UID){
+  if(SB&&SBUSER&&SBUSER.id!==ADMIN_UID&&(familyCan('member_update')||familyCan('member_create'))){
    try{
     const changed=people.filter(person=>{const before=snapshot.find(x=>x.id===person.id);return !before||JSON.stringify(before)!==JSON.stringify(person)});
     for(const person of changed)await persistSingleMemberToSupabase(person);
