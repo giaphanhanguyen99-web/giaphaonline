@@ -77,7 +77,7 @@ input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);b
 .tr li:only-child::after{border:0;border-left:2px solid var(--line)}
 .tr li.m:only-child::before{display:block;right:auto;left:calc(50% + var(--o));margin:0 0 0 -1px;width:calc(var(--o)*-1 + 2px);border:0;border-top:2px solid var(--line)}
 .tr>li::before,.tr>li::after{display:none}
-.node{display:flex;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}.branch-toggle{align-self:center;margin:4px;padding:4px 8px;min-width:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-weight:700;cursor:pointer}
+.node{display:flex;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden;position:relative}.vn{position:relative;padding-bottom:2px}.branch-toggle{position:absolute;right:3px;bottom:3px;z-index:2;display:flex;align-items:center;justify-content:center;width:22px;height:22px;min-width:0;padding:0;margin:0;border:1px solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink);font-size:12px;line-height:1;font-weight:700;cursor:pointer;box-shadow:0 1px 3px #0002}.branch-toggle:hover{background:var(--accent);color:white;border-color:var(--accent)}
 .person{flex:none;display:flex;flex-direction:column;align-items:center;gap:5px;width:var(--pw);height:calc(var(--th) - 2px);padding:9px 8px;border:0;border-radius:0;background:none;text-align:center;line-height:1.25}
 .person:hover{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
 .person+.person{border-left:1px solid var(--line)}
