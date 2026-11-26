@@ -465,6 +465,12 @@ async function loadSupabaseMembers(){
  try{localStorage.setItem(KEY,JSON.stringify(people));localStorage.setItem(KEY+'-notice',JSON.stringify(notice));localStorage.setItem(KEY+'-saints',JSON.stringify(saints));localStorage.setItem(KEY+'-t',String(dataT))}catch(e){}
  return rows.length;
 }
+async function persistSingleMemberToSupabase(p){
+ if(!SB||!SBUSER||!familyCan('member_update')&&!familyCan('member_create'))throw new Error('Bạn không có quyền lưu hồ sơ thành viên.');
+ const row={id:String(p.id),name:String(p.name||''),gender:p.gender||null,birth_date:p.birth||null,death_date:p.death||null,father_id:p.fatherId||null,mother_id:p.motherId||null,spouse_ids:p.spouseId?[p.spouseId]:[],photo_url:p.photoUrl||null,photo_path:p.photoPath||null,data:p,updated_at:new Date().toISOString()};
+ const {error}=await SB.from('family_members').upsert([row],{onConflict:'id'});
+ if(error)throw error;
+}
 async function persistSupabaseMembers(){
  if(!OWN||!SB||!SBUSER||SBUSER.id!==ADMIN_UID)throw new Error('Bạn cần đăng nhập đúng tài khoản quản trị.');
  const {data:existing,error:readError}=await SB.from('family_members').select('id');
@@ -487,7 +493,7 @@ async function persistSupabaseMembers(){
  dataT=Date.now();dirty=false;try{localStorage.setItem(KEY+'-t',String(dataT))}catch(e){}
 }
 const save=()=>{dirty=true;try{localStorage.setItem(KEY,JSON.stringify(people));localStorage.setItem(KEY+'-notice',JSON.stringify(notice));localStorage.setItem(KEY+'-saints',JSON.stringify(saints));localStorage.setItem(KEY+'-t',Date.now());bad=false}catch(e){bad=true}
- if(OWN&&SB){clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(async()=>{if(cloudSaving)return;cloudSaving=true;try{await persistSupabaseMembers();toast('Đã đồng bộ dữ liệu thành viên lên Supabase.')}catch(e){console.error('Supabase save:',e);toast('Chưa đồng bộ được lên Supabase: '+(e.message||e))}finally{cloudSaving=false}},250)}
+ if(OWN&&SB&&SBUSER&&SBUSER.id===ADMIN_UID){clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(async()=>{if(cloudSaving)return;cloudSaving=true;try{await persistSupabaseMembers();toast('Đã đồng bộ dữ liệu thành viên lên Supabase.')}catch(e){console.error('Supabase save:',e);toast('Chưa đồng bộ được lên Supabase: '+(e.message||e))}finally{cloudSaving=false}},250)}
 };
 const $=s=>document.querySelector(s);
 const hasN=n=>!!(n&&(n.img||n.text));
@@ -1486,6 +1492,15 @@ function openForm(pre={},id=null){if(id?!familyCan('member_update'):!familyCan('
   if(id)people=people.map(x=>x.id===id?o:x);else people.push(o);
   if(old&&old!==o.spouseId){const x=by(old);if(x&&x.spouseId===o.id)delete x.spouseId}
   if(o.spouseId){const x=by(o.spouseId);if(x){if(x.spouseId&&x.spouseId!==o.id){const y=by(x.spouseId);if(y&&y.spouseId===x.id)delete y.spouseId}x.spouseId=o.id}}
+  if(OWN&&SB&&SBUSER&&SBUSER.id!==ADMIN_UID){
+   try{
+    const affected=[o,...(o.spouseId&&by(o.spouseId)?[by(o.spouseId)]:[])];
+    for(const person of affected)await persistSingleMemberToSupabase(person);
+   }catch(err){
+    if(oldPerson){people=people.map(x=>x.id===oldPerson.id?oldPerson:x)}else people=people.filter(x=>x.id!==o.id);
+    btn.disabled=false;btn.textContent='Lưu';$('#f-err').textContent='Không lưu được lên cơ sở dữ liệu: '+(err.message||err);return;
+   }
+  }
   save();d.close();render();openView(o.id)};
  d.showModal();$('#f-name').focus();
 }
